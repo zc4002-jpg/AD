@@ -1,0 +1,4357 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <base target="_top">
+
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>暖憶｜SPMSQ服務評估</title>
+
+  <style>
+    :root {
+      --green: #2e6856;
+      --green-dark: #214e40;
+      --green-soft: #e2eee6;
+      --paper: #fbfaf6;
+      --canvas: #f1efe7;
+      --ink: #26312d;
+      --muted: #6d7772;
+      --border: #deddd5;
+      --peach: #f4e1d5;
+      --orange: #c86843;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family:
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(860px, calc(100% - 24px));
+      margin: 24px auto;
+    }
+
+    .header {
+      margin-bottom: 18px;
+      padding: 22px 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: white;
+      border-radius: 20px;
+      background: var(--green);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: var(--green-dark);
+      background: #f2c7a8;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 23px;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      color: #cfe0d8;
+      font-size: 12px;
+    }
+
+    .private-tag {
+      padding: 6px 10px;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-direction: column;
+    }
+
+    .device-summary {
+      color: #e5f0eb;
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .device-settings-button {
+      min-height: 34px;
+      padding: 0 12px;
+      color: var(--green-dark);
+      border: 0;
+      border-radius: 10px;
+      background: white;
+      font-weight: 700;
+    }
+
+    .panel {
+      padding: clamp(22px, 5vw, 38px);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: 0 18px 45px rgba(40,55,48,.08);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .eyebrow {
+      color: #9c684b;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .16em;
+    }
+
+    h2 {
+      margin: 6px 0 9px;
+      font-size: clamp(25px, 5vw, 34px);
+    }
+
+    h3 {
+      margin: 5px 0 8px;
+      font-size: 22px;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+    }
+
+    .mode-card {
+      min-height: 170px;
+      padding: 22px;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      color: var(--ink);
+      background: white;
+    }
+
+    .mode-card:hover {
+      border-color: var(--green);
+      transform: translateY(-2px);
+    }
+
+    .mode-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: var(--green-dark);
+      background: var(--green-soft);
+      font-size: 25px;
+    }
+
+    .mode-card strong {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 17px;
+    }
+
+    .mode-card span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #58635e;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    label.full {
+      grid-column: 1 / -1;
+    }
+
+    .birth-date-fields {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .birth-date-fields select:disabled {
+      color: var(--muted);
+      background: #f3f2ed;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 13px;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus,
+    button:focus-visible {
+      outline: 3px solid rgba(46,104,86,.2);
+      outline-offset: 2px;
+    }
+
+    .actions {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary,
+    .secondary {
+      min-height: 44px;
+      padding: 0 19px;
+      border-radius: 11px;
+      font-weight: 700;
+    }
+
+    .primary {
+      color: white;
+      border: 0;
+      background: var(--green);
+    }
+
+    .primary:hover {
+      background: var(--green-dark);
+    }
+
+    .primary:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .secondary {
+      color: var(--green-dark);
+      border: 1px solid #aabbb3;
+      background: white;
+    }
+
+    .notice {
+      margin-top: 20px;
+      padding: 13px 15px;
+      color: #705744;
+      border-left: 4px solid #d17a53;
+      border-radius: 10px;
+      background: var(--peach);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .client-preview {
+      margin-top: 15px;
+      padding: 16px;
+      border-radius: 13px;
+      background: var(--green-soft);
+    }
+
+    .client-preview strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .client-preview span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .progress-row {
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-row strong {
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .progress {
+      height: 8px;
+      flex: 1;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #dfded7;
+    }
+
+    .progress span {
+      height: 100%;
+      display: block;
+      border-radius: inherit;
+      background: var(--green);
+      transition: width .25s;
+    }
+
+    .question-card {
+      padding: clamp(20px, 4vw, 30px);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: white;
+    }
+
+    .question-number {
+      color: #a36b4b;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .15em;
+    }
+
+    .question-card h3 {
+      margin-top: 9px;
+      font-size: clamp(22px, 4vw, 29px);
+    }
+
+    .question-hint {
+      min-height: 38px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .answer-grid {
+      margin: 21px 0 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .answer-button {
+      min-height: 68px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      color: var(--ink);
+      background: #f8f7f2;
+      font-weight: 800;
+    }
+
+    .answer-button.correct.selected {
+      color: #2f654f;
+      border-color: #65a083;
+      background: #e2f0e7;
+    }
+
+    .answer-button.incorrect.selected {
+      color: #9a5439;
+      border-color: #d18462;
+      background: #f8e5da;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 15px;
+    }
+
+    .score-card,
+    .recommend-card {
+      padding: 23px;
+      border-radius: 17px;
+    }
+
+    .score-card {
+      color: white;
+      background: var(--green);
+    }
+
+    .score-card .eyebrow {
+      color: #c7ddd3;
+    }
+
+    .score-number {
+      margin: 15px 0 4px;
+      font-family: Georgia, serif;
+      font-size: 58px;
+      line-height: 1;
+    }
+
+    .score-number small {
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    .score-details {
+      margin-top: 16px;
+      color: #d1e2da;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    .recommend-card {
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    .recommend-box {
+      margin-top: 15px;
+      padding: 14px;
+      color: #4e5e57;
+      border-radius: 12px;
+      background: #f0f2ec;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .disclaimer {
+      margin-top: 18px;
+      padding: 13px 15px;
+      color: #725844;
+      border-radius: 11px;
+      background: var(--peach);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      background: rgba(27,43,36,.55);
+    }
+
+    .loading-box {
+      padding: 22px 28px;
+      color: var(--ink);
+      border-radius: 15px;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 30;
+      padding: 12px 18px;
+      transform: translate(-50%, 20px);
+      color: white;
+      border-radius: 11px;
+      background: #263f36;
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s;
+      font-size: 12px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+.history-panel {
+  margin-top: 15px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+}
+
+.history-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.history-title h3 {
+  margin: 3px 0 0;
+  font-size: 19px;
+}
+
+.history-count {
+  padding: 5px 9px;
+  color: var(--green-dark);
+  border-radius: 15px;
+  background: var(--green-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.history-summary {
+  margin-top: 14px;
+  padding: 12px 14px;
+  color: #5f554c;
+  border-left: 4px solid #ce7955;
+  border-radius: 9px;
+  background: var(--peach);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.difficulty-change {
+  margin-top: 9px;
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.history-list {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.history-item {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #e7e5dd;
+  border-radius: 11px;
+  background: #f8f7f2;
+}
+
+.history-date {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.history-result strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 13px;
+}
+
+.history-result span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.history-level {
+  padding: 5px 8px;
+  white-space: nowrap;
+  color: var(--green-dark);
+  border-radius: 12px;
+  background: var(--green-soft);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+@media (max-width: 520px) {
+  .history-item {
+    grid-template-columns: 1fr auto;
+  }
+
+  .history-date {
+    grid-column: 1 / -1;
+  }
+}
+
+.activity-trend-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+}
+
+.activity-trend-header {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activity-trend-header h3 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.activity-trend-count {
+  padding: 6px 10px;
+  color: var(--green-dark);
+  border-radius: 999px;
+  background: var(--green-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.activity-trend-summary {
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.activity-trend-summary > div {
+  padding: 13px;
+  border-radius: 12px;
+  background: var(--canvas);
+}
+
+.activity-trend-summary span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.activity-trend-summary strong {
+  color: var(--green-dark);
+  font-size: 21px;
+}
+
+.activity-trend-attention {
+  margin-bottom: 14px;
+  color: #705744;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.activity-trend-chart {
+  height: 205px;
+  padding: 12px 4px 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+}
+
+.activity-trend-column {
+  min-width: 54px;
+  height: 180px;
+  display: grid;
+  grid-template-rows: 22px 1fr 24px;
+  gap: 4px;
+  text-align: center;
+}
+
+.activity-trend-value {
+  color: var(--green-dark);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.activity-trend-track {
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 9px 9px 4px 4px;
+  background: var(--green-soft);
+}
+
+.activity-trend-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 8px 8px 3px 3px;
+  background: var(--green);
+}
+
+.activity-trend-bar.attention {
+  background: var(--orange);
+}
+
+.activity-trend-date {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.activity-trend-empty {
+  width: 100%;
+  padding: 30px 12px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.activity-trend-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+@media (max-width: 640px) {
+  .activity-trend-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.game-recommendations {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.game-card {
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  min-height: 230px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  color: var(--ink);
+  background: white;
+}
+
+.game-card:hover {
+  border-color: var(--green);
+  transform: translateY(-2px);
+}
+
+.game-card.recommended {
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+
+.game-card.test-game {
+  border-color: #d17a30;
+  box-shadow: inset 0 0 0 2px #e7a45f;
+  background: #fffaf2;
+}
+
+.game-tag {
+  align-self: flex-start;
+  padding: 4px 8px;
+  color: var(--green-dark);
+  border-radius: 12px;
+  background: var(--green-soft);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.game-card h3 {
+  margin: 14px 0 5px;
+  font-size: 18px;
+}
+
+.game-skill {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.game-settings {
+  margin: 14px 0;
+  padding: 10px;
+  border-radius: 9px;
+  background: #f4f3ed;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.game-guidance {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.game-card .primary {
+  width: 100%;
+  margin-top: auto;
+}
+
+.selected-game-details {
+  margin-bottom: 20px;
+  padding: 17px;
+  color: var(--green-dark);
+  border-left: 4px solid var(--green);
+  border-radius: 11px;
+  background: var(--green-soft);
+  line-height: 1.7;
+}
+
+.selected-game-details strong {
+  display: block;
+  font-size: 18px;
+}
+
+.selected-game-details span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.activity-client-load {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.game-play-heading {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.game-play-heading h2 { margin-bottom: 4px; }
+
+.game-play-meta {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.game-result-summary {
+  margin: 0 0 20px;
+  padding: 14px 17px;
+  border: 1px solid #c9ddd5;
+  border-radius: 12px;
+  background: #f5fbf8;
+  color: var(--green-dark);
+  line-height: 1.7;
+}
+
+.game-result-summary strong { display: block; font-size: 15px; }
+
+.result-locked-field {
+  color: var(--green-dark);
+  border-color: #c9ddd5;
+  background: #eef5f1;
+  font-weight: 800;
+}
+
+.game-tag.test-game-tag {
+  color: #7a3f08;
+  background: #ffe2b8;
+}
+
+.test-station-banner {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border: 2px solid #d17a30;
+  border-radius: 14px;
+  background: #fff1dc;
+  color: #6f3a0a;
+  line-height: 1.7;
+}
+
+.test-station-banner strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 18px;
+}
+
+.result-locked-value {
+  width: fit-content;
+  min-width: 110px;
+  padding: 10px 16px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--green-dark);
+  border: 1px solid #c9ddd5;
+  border-radius: 11px;
+  background: #eef5f1;
+  font-size: 20px;
+}
+
+input[type="range"] {
+  padding: 0;
+  accent-color: var(--green);
+}
+
+@media (max-width: 760px) {
+  .game-recommendations {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-stats {
+  margin: 0 0 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.dashboard-stat-card {
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: white;
+}
+
+.dashboard-stat-card > span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.dashboard-stat-card div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.dashboard-stat-card strong {
+  color: var(--green-dark);
+  font-size: 29px;
+  line-height: 1;
+}
+
+.dashboard-stat-card small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.recent-activity-panel {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: white;
+}
+
+.recent-activity-header {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.recent-activity-header h3 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.recent-refresh-button {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 11px;
+}
+
+.recent-activity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.recent-activity-list {
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.recent-activity-item {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 86px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--paper);
+}
+
+.recent-activity-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.recent-activity-content strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.recent-activity-content span {
+  display: block;
+  line-height: 1.6;
+}
+
+.recent-activity-score {
+  min-width: 64px;
+  padding: 7px 9px;
+  text-align: center;
+  color: var(--green-dark);
+  border-radius: 12px;
+  background: var(--green-soft);
+  font-weight: 800;
+}
+
+.recent-activity-empty {
+  padding: 20px;
+  text-align: center;
+  border-radius: 12px;
+  background: var(--canvas);
+}
+
+.client-record-filters {
+  margin: 22px 0;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--paper);
+}
+
+.client-record-filters .full { grid-column: 1 / -1; }
+
+.history-client-load-status {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.history-client-load-status.error {
+  background: #fff1ef;
+  color: #9a3f34;
+}
+
+.history-client-load-status button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 13px;
+}
+
+.client-record-profile {
+  margin: 18px 0;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-left: 5px solid var(--green);
+  border-radius: 14px;
+  background: var(--green-soft);
+}
+
+.client-record-profile strong,
+.client-record-profile span { display: block; }
+
+.client-record-profile strong {
+  margin-bottom: 6px;
+  color: var(--green-dark);
+  font-size: 22px;
+}
+
+.service-status-badge {
+  display: inline-flex !important;
+  width: fit-content;
+  margin-top: 9px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--green-dark);
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.service-status-badge.closed {
+  color: #7f392f;
+  background: #f8e5df;
+}
+
+.service-status-button {
+  flex: 0 0 auto;
+  min-height: 48px;
+}
+
+.service-status-button.close-service,
+.service-confirm-button.close-service {
+  color: #ffffff;
+  border-color: #9e4c3e;
+  background: #9e4c3e;
+}
+
+.client-record-summary {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.client-record-summary > div {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.client-record-summary span,
+.client-record-summary strong { display: block; }
+
+.client-record-summary span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.client-record-summary strong {
+  margin-top: 5px;
+  color: var(--green-dark);
+  font-size: 24px;
+}
+
+.client-game-record-list {
+  display: grid;
+  gap: 14px;
+}
+
+.client-game-record-card {
+  padding: 19px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #ffffff;
+}
+
+.client-game-record-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.client-game-record-heading strong {
+  display: block;
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.client-game-record-heading span,
+.client-game-record-meta,
+.client-game-record-observation {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.client-game-record-status {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--green-dark);
+  background: var(--green-soft);
+  font-weight: 800;
+}
+
+.client-game-record-status.abandoned {
+  color: #8a5420;
+  background: #f6ead7;
+}
+
+.client-game-record-meta { margin-top: 11px; }
+
+.client-game-record-observation {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.service-status-warning {
+  padding: 13px;
+  border-left: 4px solid #cf7b51;
+  border-radius: 10px;
+  color: #784c37 !important;
+  background: #faeee7;
+  font-size: 15px;
+}
+
+@media (max-width: 640px) {
+  .recent-activity-item {
+    grid-template-columns: 1fr auto;
+  }
+
+  .recent-activity-date {
+    grid-column: 1 / -1;
+  }
+
+  .recent-activity-header,
+  .client-record-profile,
+  .client-game-record-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .recent-activity-actions,
+  .service-status-button { width: 100%; }
+
+  .recent-activity-actions button { flex: 1 1 auto; }
+
+  .client-record-filters,
+  .client-record-summary { grid-template-columns: 1fr; }
+
+  .client-record-filters .full { grid-column: auto; }
+}
+
+.device-setup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(28, 55, 47, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+.device-setup-overlay.hidden {
+  display: none;
+}
+
+.device-setup-card {
+  width: min(100%, 480px);
+  padding: 32px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(25, 55, 46, 0.24);
+}
+
+.device-setup-mark {
+  display: inline-flex;
+  margin-bottom: 14px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2e6856;
+  font-weight: 700;
+}
+
+.device-setup-card h2 {
+  margin: 0 0 10px;
+  color: #254f43;
+}
+
+.device-setup-card p {
+  margin: 0 0 24px;
+  color: #61716b;
+  line-height: 1.7;
+}
+
+.device-setup-card label {
+  display: block;
+  margin: 16px 0 7px;
+  color: #355e51;
+  font-weight: 700;
+}
+
+.device-setup-card input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #cbd9d3;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.device-setup-card input:focus {
+  border-color: #2e6856;
+  outline: 3px solid rgba(46, 104, 86, 0.12);
+}
+
+.station-search {
+  position: relative;
+}
+
+.station-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 10;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #b9ccc4;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(25, 55, 46, 0.18);
+  -webkit-overflow-scrolling: touch;
+}
+
+.station-suggestions.hidden {
+  display: none;
+}
+
+.station-suggestion {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid #edf1ef;
+  color: #254f43;
+  background: #ffffff;
+}
+
+.station-suggestion:last-child {
+  border-bottom: 0;
+}
+
+.station-suggestion:active,
+.station-suggestion:hover {
+  background: #e7f0eb;
+}
+
+.station-suggestion-code {
+  flex: 0 0 auto;
+  color: #61716b;
+  font-weight: 700;
+}
+
+.station-suggestion-empty {
+  padding: 13px;
+  color: #61716b;
+  font-size: 13px;
+}
+
+.device-setup-message {
+  min-height: 24px;
+  margin-top: 14px;
+  color: #b4473a;
+  font-size: 14px;
+}
+
+.device-setup-card .primary-button {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* 長者友善字級：桌機與平板共用，避免關鍵資訊低於可讀尺寸。 */
+body {
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.header h1 { font-size: 26px; }
+.header p { font-size: 15px; }
+.private-tag { font-size: 13px; }
+.device-summary { font-size: 14px; }
+.device-settings-button { min-height: 44px; font-size: 16px; }
+.eyebrow { font-size: 13px; }
+h3 { font-size: 24px; }
+.lead { font-size: 17px; }
+.mode-card strong { font-size: 20px; }
+.mode-card span { font-size: 16px; }
+
+label { font-size: 16px; }
+input,
+select,
+textarea {
+  min-height: 52px;
+  padding: 13px 14px;
+  font-size: 18px;
+}
+
+.primary,
+.secondary {
+  min-height: 52px;
+  font-size: 17px;
+}
+
+.notice,
+.score-details,
+.recommend-box,
+.disclaimer { font-size: 15px; }
+.client-preview span { font-size: 15px; }
+.progress-row strong { font-size: 15px; }
+.question-number { font-size: 13px; }
+.question-hint { font-size: 16px; }
+.answer-button { font-size: 18px; }
+.toast { font-size: 16px; }
+
+.history-title h3,
+.activity-trend-header h3 { font-size: 22px; }
+.history-count,
+.history-level { font-size: 13px; }
+.history-summary,
+.difficulty-change,
+.activity-trend-attention { font-size: 15px; }
+.history-date { font-size: 14px; }
+.history-result strong { font-size: 17px; }
+.history-result span { font-size: 14px; }
+.activity-trend-count,
+.activity-trend-summary span,
+.activity-trend-value { font-size: 14px; }
+.activity-trend-date { font-size: 12px; }
+.activity-trend-note { font-size: 13px; }
+
+.game-tag { font-size: 13px; }
+.game-card h3 { font-size: 21px; }
+.game-skill,
+.game-settings,
+.game-guidance,
+.selected-game-details span,
+.game-play-meta { font-size: 15px; }
+.game-result-summary strong { font-size: 18px; }
+
+.dashboard-stat-card > span { font-size: 15px; }
+.dashboard-stat-card small { font-size: 14px; }
+.recent-activity-header h3 { font-size: 24px; }
+.recent-refresh-button { min-height: 48px; font-size: 16px; }
+.recent-activity-list { font-size: 16px; }
+.recent-activity-item { padding: 18px; }
+.recent-activity-date { font-size: 15px; }
+.recent-activity-content strong { font-size: 20px; }
+.recent-activity-score { font-size: 18px; }
+.station-suggestion,
+.station-suggestion-empty,
+.device-setup-message { font-size: 16px; }
+
+    @media (max-width: 640px) {
+      .shell {
+        margin: 12px auto;
+      }
+
+      .header {
+        padding: 17px;
+        border-radius: 16px;
+      }
+
+      .private-tag {
+        display: none;
+      }
+
+      .header-actions {
+        align-items: flex-end;
+      }
+
+      .device-summary {
+        max-width: 190px;
+      }
+
+      .panel {
+        padding: 21px 17px;
+      }
+
+      .mode-grid,
+      .form-grid,
+      .score-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      label.full {
+        grid-column: auto;
+      }
+
+      .answer-button {
+        min-height: 58px;
+      }
+
+      .actions button {
+        flex: 1;
+      }
+    }
+  /* 2026-10-13：平板可直接閱讀遊戲歷程 */
+.game-cover { font-size: 76px; line-height: 1.25; text-align: center; background: #fff; border: 2px solid #315d50; border-radius: 18px; padding: 16px; margin: 14px 0; }
+.game-last-played { font-size: 18px; font-weight: 800; color: #214e40; margin: 12px 0; }
+.activity-trend-chart { height: 265px; }
+.activity-trend-column { min-width: 110px; width: 110px; height: 245px; grid-template-rows: 22px 1fr 24px 56px; flex-shrink: 0; }
+.activity-trend-game { font-size: 17px; line-height: 1.5; font-weight: 800; overflow-wrap: anywhere; }
+.game-card[hidden] { display: none !important; }
+.game-more-toggle { grid-column: 1 / -1; width: 100%; margin-top: 10px; font-size: 20px; }
+.game-recommendation-reason { color: #214e40; font-size: 17px; line-height: 1.5; margin: 10px 0; }
+
+/* 2026-10-14 accompanied activity views; other assessment screens keep their layout. */
+.shell.activity-wide { width:min(1240px,calc(100% - 24px)); }
+.activity-wide .panel { --muted:#536159; }
+.activity-wide .panel h2 { font-size:30px; }
+.activity-wide .lead { font-size:18px; }
+.activity-wide button:focus-visible,.activity-wide select:focus-visible,.activity-wide input:focus-visible,.activity-wide textarea:focus-visible,.activity-wide summary:focus-visible,.activity-dialog button:focus-visible,.activity-dialog select:focus-visible { outline:4px solid #214e40; outline-offset:3px; }
+.activity-wide [hidden],.activity-dialog [hidden] { display:none!important; }
+.activity-wide .notice { color:#536159; font-size:16px; }
+.activity-step { color:#214e40; font-size:16px; font-weight:800; margin-bottom:8px; }
+.activity-heading-row { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.activity-client-picker { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:14px; }
+.activity-client-picker label { margin:0; }
+#activityClientView .client-preview { margin-top:16px; }
+#activityClientView .client-preview strong { font-size:24px; }
+#activityClientView .client-preview span { font-size:18px; }
+#activityClientView .activity-trend-panel { display:flex; gap:16px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:14px 0; padding:14px 18px; }
+#activityTrendCount { color:#405b4f; font-size:18px; }
+#activityClientView .game-recommendations { display:grid; grid-template-columns:minmax(280px,.85fr) minmax(0,1.55fr); gap:20px; align-items:start; }
+.game-priority,.game-backup-group,.game-extra-group { min-width:0; }
+.game-group-title { font-size:22px; margin:0 0 12px; color:#214e40; }
+.game-backups,.game-extra-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.game-extra-group,.game-more-toggle { grid-column:1 / -1; }
+#activityClientView .game-card { padding:18px; min-width:0; min-height:0; gap:8px; border-radius:18px; transform:none; }
+#activityClientView .game-card h3 { font-size:23px; margin:0; overflow-wrap:anywhere; }
+#activityClientView .game-card .game-tag { font-size:15px; }
+#activityClientView .game-card .game-cover { margin:0; padding:12px; border:0; background:#f4f5ed; font-size:52px; min-height:80px; border-radius:14px; }
+#activityClientView .game-priority .game-cover { font-size:94px; min-height:180px; display:grid; place-items:center; }
+#activityClientView .game-priority h3 { font-size:30px; }
+#activityClientView .game-skill { color:#536159; font-size:17px; }
+#activityClientView .game-settings { margin:0; padding:10px; font-size:17px; }
+#activityClientView .game-last-played { font-size:16px; margin:0; }
+#activityClientView .game-recommendation-reason { font-size:17px; margin:0; }
+#activityClientView .game-card details { color:#405b4f; font-size:17px; }
+#activityClientView .game-card summary { cursor:pointer; padding:8px 0; min-height:44px; }
+#activityClientView .game-guidance { font-size:17px; margin:0 0 8px; }
+#activityClientView .game-card button { width:100%; min-height:58px; margin:8px 0 0; font-size:20px; }
+#activityClientView .game-more-toggle { margin:0; }
+#gamePlayView .game-play-meta { font-size:20px; color:#405b4f; }
+#gamePlayView .game-play-heading { margin-bottom:18px; }
+#gamePlayView .notice { margin-top:18px; }
+#clientHistoryView .client-record-filters { grid-template-columns:repeat(3,minmax(0,1fr)); padding:18px; }
+#clientHistoryView .client-record-filters label { margin:0; }
+.history-advanced { grid-column:1 / -1; }
+.history-advanced summary { min-height:44px; cursor:pointer; color:#214e40; font-size:18px; font-weight:800; }
+.history-advanced-fields { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding-top:12px; }
+#clientHistoryView .client-record-profile strong { font-size:25px; }
+#clientHistoryView .client-record-profile span { font-size:17px; color:#405b4f; }
+#clientHistoryView .client-record-summary { grid-template-columns:repeat(4,minmax(0,1fr)); }
+#clientHistoryView .client-record-summary span { font-size:17px; color:#536159; }
+#clientHistoryView .client-record-summary strong { font-size:26px; }
+.history-table-wrap { border:1px solid #b6c6ba; border-radius:16px; overflow:hidden; }
+.history-table { width:100%; border-collapse:collapse; font-size:17px; background:#fff; }
+.history-table caption { text-align:left; padding:14px 16px; color:#405b4f; background:#f4f5ed; }
+.history-table th { text-align:left; padding:14px 12px; background:#e2eee6; color:#214e40; font-weight:800; }
+.history-table td { padding:14px 12px; border-top:1px solid #deddd5; overflow-wrap:anywhere; vertical-align:middle; }
+.history-table td:first-child { font-weight:800; }
+.history-table .secondary { font-size:16px; min-height:48px; padding:10px 12px; white-space:nowrap; }
+.history-status { display:inline-block; color:#214e40; background:#e2eee6; padding:5px 9px; border-radius:10px; white-space:nowrap; font-size:16px; }
+.history-status.abandoned { color:#68421f; background:#f4e1d5; }
+.history-cards { display:none; gap:14px; }
+.history-card { padding:18px; border:1px solid #b6c6ba; border-radius:16px; background:#fff; }
+.history-card-heading { display:flex; gap:10px; justify-content:space-between; align-items:start; }
+.history-card h3 { font-size:23px; margin:0; }
+.history-card time { display:block; margin-top:5px; font-size:17px; color:#536159; }
+.history-card p { font-size:18px; margin:12px 0; }
+.history-card .secondary { min-height:52px; }
+#activityRecordView .selected-game-details strong { font-size:26px; }
+#activityRecordView .selected-game-details span { font-size:18px; color:#405b4f; }
+.record-auto-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
+.record-auto-summary>div { background:#f0f5ef; border:1px solid #b6c6ba; border-radius:15px; padding:18px; }
+.record-auto-summary label,.record-auto-summary span { display:block; font-size:17px; color:#405b4f; }
+.record-auto-summary strong { display:block; font-size:28px; color:#214e40; margin-top:8px; }
+.record-auto-summary input[readonly] { margin-top:8px; font-size:28px; padding:0; min-height:44px; border:0; background:transparent; color:#214e40; width:100%; }
+#activityRecordView .game-result-summary { font-size:17px; }
+#activityRecordView .game-result-summary summary { cursor:pointer; min-height:44px; font-size:18px; font-weight:800; }
+.record-form-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; }
+.record-form-column { min-width:0; display:grid; align-content:start; gap:20px; }
+.record-form-column label { margin:0; font-size:18px; }
+.record-choices { margin:0; border:0; padding:0; min-width:0; }
+.record-choices legend { margin-bottom:12px; font-size:21px; font-weight:800; }
+.record-choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.record-choice-grid.mood-choices { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.record-choice { display:flex!important; flex-direction:column; gap:7px; align-items:center; text-align:center; border:2px solid #b6c6ba; border-radius:14px; padding:12px 8px; background:#fff; min-height:76px; cursor:pointer; color:#26312d; font-size:18px!important; }
+.record-choice input { appearance:auto; margin:0; min-height:0; padding:0; width:22px; height:22px; accent-color:#214e40; }
+.record-choice:has(input:checked) { background:#e2eee6; border-color:#214e40; font-weight:800; }
+.record-choice:focus-within { outline:3px solid #214e40; outline-offset:3px; }
+#activityRecordView textarea { min-height:190px; resize:vertical; }
+.record-status { padding:16px 18px; border:2px solid #acbdae; border-radius:14px; background:#f4f5ed; color:#405b4f; font-size:19px; font-weight:800; margin:20px 0 0; }
+.record-status.saved { border-color:#214e40; background:#e2eee6; color:#214e40; }
+.record-status.error { border-color:#853626; background:#fff0e9; color:#853626; }
+#activityRecordView .actions { flex-wrap:wrap; }
+#activityRecordView .actions .primary { min-width:230px; min-height:60px; font-size:21px; }
+.activity-dialog .device-setup-card { width:min(650px,calc(100% - 28px)); max-height:calc(100dvh - 40px); overflow:auto; }
+.activity-dialog h2 { font-size:27px; }
+.activity-dialog p { font-size:19px; color:#405b4f; white-space:pre-wrap; overflow-wrap:anywhere; }
+.activity-dialog .actions { flex-wrap:wrap; }
+.record-detail-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px 0; }
+.record-detail-fields div { border-bottom:1px solid #deddd5; padding-bottom:10px; }
+.record-detail-fields dt { color:#536159; font-size:16px; }
+.record-detail-fields dd { margin:4px 0 0; color:#26312d; font-size:19px; }
+@media (orientation:portrait), (max-width:900px) {
+  #activityClientView .game-recommendations { grid-template-columns:minmax(0,1fr); }
+  #activityClientView .game-priority .game-cover { min-height:130px; font-size:80px; }
+  .history-table-wrap { display:none; }
+  .history-cards { display:grid; }
+  #clientHistoryView .client-record-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .record-form-layout { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:620px) {
+  .activity-client-picker { grid-template-columns:minmax(0,1fr); }
+  #clientHistoryView .client-record-filters { grid-template-columns:minmax(0,1fr); }
+  .history-advanced-fields { grid-template-columns:minmax(0,1fr); }
+  .record-auto-summary { gap:8px; }
+  .record-auto-summary>div { padding:12px 8px; }
+  .record-auto-summary label,.record-auto-summary span { font-size:15px; }
+  .record-auto-summary strong,.record-auto-summary input[readonly] { font-size:23px; }
+  #activityClientView .game-card { padding:14px; }
+  #activityClientView .game-card h3 { font-size:21px; }
+  .activity-dialog .device-setup-card { padding:22px 18px; }
+}
+@media(max-width:440px) {
+  .game-backups,.game-extra-grid { grid-template-columns:minmax(0,1fr); }
+  .record-choice-grid { grid-template-columns:minmax(0,1fr); }
+  .record-choice { flex-direction:row; justify-content:center; min-height:56px; }
+  .record-detail-fields { grid-template-columns:minmax(0,1fr); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .activity-wide *, .activity-dialog * { scroll-behavior:auto!important; transition:none!important; animation:none!important; }
+}
+
+</style>
+</head>
+
+<body>
+  <main class="shell">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark">暖</div>
+
+        <div>
+          <h1>暖憶</h1>
+          <p>認知活動與SPMSQ服務觀察</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="private-tag">內部服務系統</div>
+        <div id="deviceSummary" class="device-summary">
+          正在確認設備……
+        </div>
+        <button
+          class="device-settings-button"
+          type="button"
+          onclick="showDeviceSetup('')"
+        >
+          切換站別／設備
+        </button>
+      </div>
+    </header>
+
+    <section id="homeView" class="panel">
+      <div id="testStationBanner" class="test-station-banner hidden">
+        <strong>新遊戲測試站｜站點代號999</strong>
+        此站專供測試尚未正式開放的新遊戲；資料會標記為測試站，請勿作為正式服務紀錄。
+      </div>
+      <span class="eyebrow">SERVICE WORKFLOW</span>
+      <h2>今天要進行哪一項工作？</h2>
+
+      <p class="lead">
+        新個案可在建檔後立即完成首次SPMSQ；
+        原有個案可依工作人員評估再次量測。
+      </p>
+<div
+  id="dashboardStats"
+  class="dashboard-stats"
+  aria-live="polite"
+>
+  <div class="dashboard-stat-card">
+    <span>本週活動</span>
+    <div>
+      <strong id="weeklyActivityCount">—</strong>
+      <small>場</small>
+    </div>
+  </div>
+
+  <div class="dashboard-stat-card">
+    <span>服務中個案</span>
+    <div>
+      <strong id="activeClientCount">—</strong>
+      <small>位</small>
+    </div>
+  </div>
+
+  <div class="dashboard-stat-card">
+    <span>啟用遊戲</span>
+    <div>
+      <strong id="enabledGameCount">—</strong>
+      <small>款</small>
+    </div>
+  </div>
+
+  <div class="dashboard-stat-card">
+    <span>累計活動</span>
+    <div>
+      <strong id="totalActivityCount">—</strong>
+      <small>場</small>
+    </div>
+  </div>
+</div>
+
+      <div class="mode-grid">
+        <button
+          class="mode-card"
+          type="button"
+          onclick="showNewClient()"
+        >
+          <span class="mode-icon">＋</span>
+          <strong>新增個案</strong>
+          <span>
+            建立基本資料，接著完成首次SPMSQ。
+          </span>
+        </button>
+
+        <button
+          class="mode-card"
+          type="button"
+          onclick="showExistingClient()"
+        >
+          <span class="mode-icon">↻</span>
+          <strong>原有個案再測</strong>
+          <span>
+            選擇服務個案，保留本次與歷次結果。
+          </span>
+        </button>
+
+<button
+  class="mode-card"
+  type="button"
+  onclick="showActivityStart()"
+>
+  <span class="mode-icon">◇</span>
+  <strong>開始認知活動</strong>
+  <span>
+    依個案難度推薦遊戲，完成後記錄活動觀察。
+  </span>
+</button>
+
+</div>
+
+<div class="recent-activity-panel">
+  <div class="recent-activity-header">
+    <div>
+      <span class="eyebrow">RECENT ACTIVITY</span>
+      <h3>近期認知活動</h3>
+    </div>
+
+    <div class="recent-activity-actions">
+      <button
+        class="secondary recent-refresh-button"
+        type="button"
+        onclick="showClientHistory()"
+      >
+        查詢個案紀錄
+      </button>
+
+      <button
+        class="secondary recent-refresh-button"
+        type="button"
+        onclick="loadRecentActivities()"
+      >
+        重新整理
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="recentActivityList"
+    class="recent-activity-list"
+  >
+    正在載入近期活動……
+  </div>
+</div>
+
+      <div class="notice">
+        SPMSQ結果僅供服務觀察、異常發現與活動調整，
+        不作為失智或其他醫療診斷。
+      </div>
+    </section>
+
+
+    <section id="clientHistoryView" class="panel hidden">
+      <span class="eyebrow">ACTIVITY HISTORY</span>
+      <h2>活動歷程</h2>
+      <p class="lead">先看活動摘要；需要了解當次帶領情況時，再開啟詳細紀錄。</p>
+      <div class="client-record-filters">
+        <label>服務個案<select id="historyClientSelect" onchange="loadClientGameRecords()"><option value="">載入中……</option></select></label>
+        <label>查詢期間<select id="historyPeriod" onchange="loadClientGameRecords()"><option value="1m">最近1個月</option><option value="3m" selected>最近3個月</option><option value="6m">最近6個月</option><option value="all">全部紀錄</option></select></label>
+        <label>遊戲<select id="historyGameSelect" onchange="loadClientGameRecords()"><option value="">全部遊戲</option></select></label>
+        <details class="history-advanced"><summary>更多篩選條件</summary><div class="history-advanced-fields">
+          <label>服務狀態<select id="historyServiceStatus" onchange="filterHistoryClientOptions()"><option value="服務中">服務中</option><option value="暫停服務">暫停服務</option><option value="已結案">已結束服務</option><option value="all">全部</option></select></label>
+          <label>完成狀態<select id="historyResultStatus" onchange="loadClientGameRecords()"><option value="all">全部</option><option value="completed">已完成</option><option value="abandoned">中途結束</option></select></label>
+        </div></details>
+        <div id="historyClientLoadStatus" class="history-client-load-status hidden" role="status"><span id="historyClientLoadMessage"></span><button class="secondary" type="button" onclick="refreshHistoryClientOptions('')">重新載入個案</button></div>
+      </div>
+      <div id="clientRecordProfile" class="client-record-profile hidden"><div><strong id="clientRecordName"></strong><span id="clientRecordDetails"></span><span id="clientRecordStatus" class="service-status-badge"></span></div><button id="serviceStatusButton" class="secondary service-status-button" type="button" onclick="openServiceStatusDialog()">結束服務</button></div>
+      <div id="clientRecordSummary" class="client-record-summary hidden"></div>
+      <div id="historyRecordStatus" role="status" aria-live="polite"></div>
+      <div id="clientGameRecordList" class="client-game-record-list">請先選擇個案。</div>
+      <div class="notice">遊戲難度為本平台的服務活動建議，不代表醫療診斷或SPMSQ正式分級。 活動紀錄僅供服務觀察。</div>
+      <div class="actions"><button class="secondary" type="button" onclick="goHome()">返回首頁</button></div>
+    </section>
+
+    <section id="newClientView" class="panel hidden">
+      <span class="eyebrow">NEW CASE</span>
+      <h2>新增服務個案</h2>
+
+      <p class="lead">
+        本系統限授權工作人員執行服務建檔；請依服務必要範圍輸入資料，
+        避免在備註欄填寫與服務無關的敏感資訊。
+      </p>
+
+      <form id="newClientForm">
+        <div class="form-grid">
+          <label class="full">
+            個案姓名
+            <input
+              name="name"
+              required
+              maxlength="40"
+              placeholder="請輸入個案姓名"
+            >
+          </label>
+
+          <label class="full">
+            出生日期
+            <div class="birth-date-fields">
+              <select
+                id="birthYear"
+                name="birthYear"
+                aria-label="出生年份"
+                onchange="updateBirthDateOptions()"
+              >
+                <option value="">年</option>
+              </select>
+
+              <select
+                id="birthMonth"
+                name="birthMonth"
+                aria-label="出生月份"
+                onchange="updateBirthDateOptions()"
+              >
+                <option value="">月</option>
+              </select>
+
+              <select
+                id="birthDay"
+                name="birthDay"
+                aria-label="出生日期"
+                onchange="syncAgeFromBirthDate()"
+                disabled
+              >
+                <option value="">日</option>
+              </select>
+            </div>
+          </label>
+
+          <label>
+            年齡
+            <input
+              name="age"
+              type="number"
+              min="55"
+              max="120"
+              inputmode="numeric"
+              placeholder="未填出生日期時必填"
+            >
+          </label>
+
+          <label>
+            教育程度
+            <select name="education" required>
+              <option value="">請選擇</option>
+              <option>國小以下</option>
+              <option>國中</option>
+              <option>高中以上</option>
+            </select>
+          </label>
+
+          <label>
+            主要帶領者
+            <input
+              name="worker"
+              maxlength="30"
+              placeholder="預設帶入本設備帶領人員"
+            >
+          </label>
+
+          <label class="full">
+            服務備註
+            <textarea
+              name="note"
+              rows="3"
+              maxlength="500"
+              placeholder="例如：偏好懷舊題材，下午精神較佳。"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button
+            class="secondary"
+            type="button"
+            onclick="goHome()"
+          >
+            返回
+          </button>
+
+          <button class="primary" type="submit">
+            建立並開始SPMSQ
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section id="existingClientView" class="panel hidden">
+      <span class="eyebrow">REASSESSMENT</span>
+      <h2>選擇原有個案</h2>
+
+      <p class="lead">
+        可查看目前難度及最後SPMSQ日期，再開始本次量測。
+      </p>
+
+      <label>
+        服務個案
+        <select
+          id="clientSelect"
+          onchange="previewSelectedClient()"
+          oninput="previewSelectedClient()"
+          onblur="previewSelectedClient()"
+        >
+          <option value="">載入中……</option>
+        </select>
+      </label>
+
+      <div
+        id="clientPreview"
+        class="client-preview hidden"
+      ></div>
+
+<div
+  id="historyPanel"
+  class="history-panel hidden"
+>
+  <div class="history-title">
+    <div>
+      <span class="eyebrow">SPMSQ HISTORY</span>
+      <h3>歷次評估</h3>
+    </div>
+
+    <span id="historyCount" class="history-count"></span>
+  </div>
+
+  <div
+    id="historySummary"
+    class="history-summary"
+  ></div>
+
+  <div
+    id="difficultyChange"
+    class="difficulty-change"
+  ></div>
+
+  <div
+    id="historyList"
+    class="history-list"
+  ></div>
+</div>
+
+      <div class="actions">
+        <button
+          class="secondary"
+          type="button"
+          onclick="goHome()"
+        >
+          返回
+        </button>
+
+        <button
+          id="startExistingButton"
+          class="primary"
+          type="button"
+          onclick="startExistingAssessment()"
+          disabled
+        >
+          開始再測SPMSQ
+        </button>
+      </div>
+    </section>
+
+
+<section id="activityClientView" class="panel hidden">
+  <div class="activity-step">活動挑選 → 一起進行 → 夥伴紀錄</div>
+  <h2>活動挑選</h2>
+  <p id="activityModeLead" class="lead">依目前套用難度挑選活動，由夥伴陪同長輩一起進行。</p>
+  <div class="activity-client-picker">
+    <label>服務個案<select id="activityClientSelect" onchange="loadGameRecommendations()" oninput="loadGameRecommendations()" onblur="loadGameRecommendations()"><option value="">載入中……</option></select></label>
+    <button type="button" class="secondary" onclick="loadGameRecommendations(true)">載入建議活動</button>
+  </div>
+  <div id="activityClientPreview" class="client-preview hidden"></div>
+  <div id="activityTrendPanel" class="activity-trend-panel hidden"><span id="activityTrendCount" role="status" aria-live="polite"></span><button type="button" class="secondary" onclick="showClientHistory(state.client && state.client.id)">查看活動歷程</button></div>
+  <div id="gameRecommendationArea" class="game-recommendations hidden" aria-busy="false"></div>
+  <div class="notice">遊戲難度為本平台的服務活動建議，不代表醫療診斷或SPMSQ正式分級。</div>
+  <div class="actions"><button class="secondary" type="button" onclick="goHome()">返回首頁</button></div>
+</section>
+
+<section id="gamePlayView" class="panel hidden">
+  <div class="game-play-heading"><div><div class="activity-step">一起進行</div><h2 id="gamePlayTitle">認知活動</h2><div id="gamePlayMeta" class="game-play-meta"></div></div></div>
+  <div id="gameModuleMount"></div>
+  <div class="notice">遊戲難度為本平台的服務活動建議，不代表醫療診斷或SPMSQ正式分級。</div>
+</section>
+
+<section id="activityRecordView" class="panel hidden">
+  <div class="activity-step">夥伴紀錄</div>
+  <h2>活動紀錄</h2>
+  <p class="lead">遊戲結果已自動帶入，請補充這次陪伴與帶領的觀察。</p>
+  <div id="selectedGameDetails" class="selected-game-details"></div>
+  <div class="record-auto-summary" aria-label="遊戲自動帶入的結果">
+    <div><label for="activityLevel">本次使用難度<input id="activityLevel" type="text" readonly aria-readonly="true"></label></div>
+    <div><span>完成度</span><strong><span id="completionValue" style="display:inline;font:inherit;color:inherit">0</span>%</strong><input id="completionInput" type="hidden" value="0"></div>
+    <div><span>完成狀態</span><strong id="activityCompletionStatus">已完成</strong></div>
+  </div>
+  <details id="gameResultSummary" class="game-result-summary hidden"></details>
+  <form id="activityForm">
+    <div class="record-form-layout">
+      <div class="record-form-column">
+        <label>帶領人員（必填）<input id="activityWorker" required maxlength="30" placeholder="請輸入帶領人員" autocomplete="name"></label>
+        <fieldset class="record-choices"><legend>協助程度（必選）</legend><div class="record-choice-grid">
+          <label class="record-choice"><input type="radio" name="activityHelpChoice" value="自行完成" required><span>自行完成</span></label>
+          <label class="record-choice"><input type="radio" name="activityHelpChoice" value="少量提示" required><span>少量提示</span></label>
+          <label class="record-choice"><input type="radio" name="activityHelpChoice" value="較多協助" required><span>較多協助</span></label>
+        </div></fieldset>
+        <input id="activityHelp" type="hidden" value="">
+      </div>
+      <div class="record-form-column">
+        <fieldset class="record-choices"><legend>情緒反應（必選）</legend><div class="record-choice-grid mood-choices">
+          <label class="record-choice"><input type="radio" name="activityMoodChoice" value="愉快" required><span>愉快</span></label>
+          <label class="record-choice"><input type="radio" name="activityMoodChoice" value="平穩" required><span>平穩</span></label>
+          <label class="record-choice"><input type="radio" name="activityMoodChoice" value="不安" required><span>不安</span></label>
+          <label class="record-choice"><input type="radio" name="activityMoodChoice" value="抗拒" required><span>抗拒</span></label>
+        </div></fieldset>
+        <input id="activityMood" type="hidden" value="">
+        <label>服務觀察<textarea id="activityNote" rows="4" maxlength="800" placeholder="例如：前半段主動參與，後半段需要一次口語提示。"></textarea></label>
+      </div>
+    </div>
+    <div class="notice">遊戲難度為本平台的服務活動建議，不代表醫療診斷或SPMSQ正式分級。 完成度不是認知診斷分數，請搭配協助程度、情緒反應及現場觀察使用。</div>
+    <div id="activityRecordStatus" class="record-status" role="status" aria-live="polite" aria-atomic="true">尚未儲存，請填寫現場觀察。</div>
+    <div class="actions">
+      <button id="recordBackButton" class="secondary" type="button" onclick="backToGameSelection()">返回活動挑選</button>
+      <button id="recordHistoryButton" class="secondary" type="button" onclick="showClientHistory(state.client && state.client.id)" hidden>查看活動歷程</button>
+      <button id="saveActivityButton" class="primary" type="submit">儲存活動紀錄</button>
+    </div>
+  </form>
+</section>
+
+    <section id="assessmentView" class="panel hidden">
+      <div class="progress-row">
+        <strong id="progressText">1／10</strong>
+
+        <div class="progress">
+          <span id="progressBar"></span>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <span
+          id="questionNumber"
+          class="question-number"
+        ></span>
+
+        <h3 id="questionTitle"></h3>
+
+        <p
+          id="questionHint"
+          class="question-hint"
+        ></p>
+
+        <div class="answer-grid">
+          <button
+            id="correctButton"
+            class="answer-button correct"
+            type="button"
+            onclick="selectAnswer(true)"
+          >
+            ✓ 回答正確
+          </button>
+
+          <button
+            id="incorrectButton"
+            class="answer-button incorrect"
+            type="button"
+            onclick="selectAnswer(false)"
+          >
+            × 錯誤或拒答
+          </button>
+        </div>
+
+        <label>
+          本題補充觀察（選填）
+          <textarea
+            id="questionNote"
+            rows="2"
+            placeholder="例如：因聽力不佳，工作人員重述一次題目。"
+            oninput="saveCurrentNote()"
+          ></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button
+          id="previousButton"
+          class="secondary"
+          type="button"
+          onclick="previousQuestion()"
+        >
+          上一題
+        </button>
+
+        <button
+          id="nextButton"
+          class="primary"
+          type="button"
+          onclick="nextQuestion()"
+          disabled
+        >
+          下一題
+        </button>
+      </div>
+    </section>
+
+    <section id="resultView" class="panel hidden">
+      <span class="eyebrow">ASSESSMENT RESULT</span>
+      <h2>SPMSQ服務觀察結果</h2>
+
+      <div class="score-grid">
+        <div class="score-card">
+          <span class="eyebrow">ERRORS</span>
+
+          <div class="score-number">
+            <span id="scoreValue">0</span>
+            <small>／10</small>
+          </div>
+
+          <strong id="resultBand"></strong>
+
+        </div>
+
+        <div class="recommend-card">
+          <span class="eyebrow">GAME RECOMMENDATION</span>
+
+          <h3>
+            建議從
+            「<span id="recommendedLevel"></span>」
+            開始
+          </h3>
+
+          <div
+            id="recommendationText"
+            class="recommend-box"
+          ></div>
+
+          <label style="margin-top:16px">
+            工作人員決定難度
+            <select id="difficultySelect">
+              <option>入門</option>
+              <option>標準</option>
+              <option>進階</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        評估依據：遊戲難度為本平台的服務活動建議，不代表醫療診斷或SPMSQ正式分級。
+        如發現明顯或持續變化，請依機構流程進一步評估或轉介。
+      </div>
+
+      <div class="actions">
+        <button
+          class="secondary"
+          type="button"
+          onclick="finishWithoutChange()"
+        >
+          保留目前結果
+        </button>
+
+        <button
+          class="primary"
+          type="button"
+          onclick="applyDifficulty()"
+        >
+          套用難度並完成
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <div id="loading" class="loading hidden" role="status" aria-live="polite">
+    <div id="loadingText" class="loading-box">
+      資料處理中……
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+
+<div id="activityConfirmOverlay" class="device-setup-overlay activity-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="activityConfirmTitle" aria-describedby="activityConfirmMessage">
+  <div class="device-setup-card"><h2 id="activityConfirmTitle"></h2><p id="activityConfirmMessage"></p><div class="actions"><button id="activityConfirmCancel" class="secondary" type="button">繼續目前活動</button><button id="activityConfirmAccept" class="primary" type="button"></button></div></div>
+</div>
+<div id="activityDetailOverlay" class="device-setup-overlay activity-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="activityDetailTitle">
+  <div class="device-setup-card"><h2 id="activityDetailTitle">活動詳細紀錄</h2><div id="activityDetailBody"></div><div class="actions"><button id="activityDetailClose" class="primary" type="button" onclick="closeActivityDialog()">關閉詳細紀錄</button></div></div>
+</div>
+
+<div
+  id="deviceSetupOverlay"
+  class="device-setup-overlay hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="deviceSetupTitle"
+>
+  <div class="device-setup-card">
+    <div class="device-setup-mark">暖憶</div>
+
+    <h2 id="deviceSetupTitle">選擇站別與設備</h2>
+
+    <p>
+      先選擇本次服務站別。設備會記住最近使用站別，之後仍可隨時切換。
+      若是同一設備的另一個瀏覽器，可輸入相同的六位數連接碼。
+    </p>
+
+    <label for="deviceStationInput">本次使用站別</label>
+    <div class="station-search">
+      <input
+        id="deviceStationInput"
+        type="text"
+        placeholder="輸入士林或111，再點選正式站名"
+        autocomplete="off"
+        oninput="renderStationSuggestions()"
+        onfocus="renderStationSuggestions()"
+      >
+      <div
+        id="deviceStationSuggestions"
+        class="station-suggestions hidden"
+        role="listbox"
+      ></div>
+    </div>
+
+    <label for="deviceNameInput">設備名稱</label>
+    <input
+      id="deviceNameInput"
+      type="text"
+      placeholder="例如：公用 iPad 01"
+      autocomplete="off"
+    >
+
+    <label for="deviceWorkerInput">預設帶領人員</label>
+    <input
+      id="deviceWorkerInput"
+      type="text"
+      maxlength="30"
+      placeholder="例如：王社工"
+      autocomplete="name"
+    >
+
+    <label for="devicePairingCodeInput">設備連接碼</label>
+    <input
+      id="devicePairingCodeInput"
+      type="text"
+      maxlength="30"
+      placeholder="新設備可留空，系統會產生六位數字"
+      autocomplete="off"
+    >
+
+    <div
+      id="deviceSetupMessage"
+      class="device-setup-message"
+    ></div>
+
+    <button
+      id="saveDeviceButton"
+      type="button"
+      class="primary-button"
+      onclick="saveDeviceSetup()"
+    >
+      儲存並進入
+    </button>
+  </div>
+</div>
+
+<div
+  id="difficultyReviewOverlay"
+  class="device-setup-overlay activity-dialog hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="difficultyReviewTitle"
+>
+  <div class="device-setup-card">
+    <div class="device-setup-mark">活動檢視</div>
+
+    <h2 id="difficultyReviewTitle">是否調整遊戲難度？</h2>
+
+    <p id="difficultyReviewMessage">
+      此個案已完成三次遊戲，請依現場反應確認難度。
+    </p>
+
+    <p class="notice">遊戲難度為本平台的服務活動建議，不代表醫療診斷或SPMSQ正式分級。</p>
+    <p id="difficultyReviewStatus" role="status" aria-live="polite"></p>
+    <label for="difficultyReviewSelect">遊戲難度</label>
+    <select id="difficultyReviewSelect">
+      <option>入門</option>
+      <option>標準</option>
+      <option>進階</option>
+    </select>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="secondary"
+        onclick="keepDifficultyAndFinish()"
+      >
+        維持目前難度
+      </button>
+
+      <button
+        type="button"
+        class="primary"
+        onclick="applyDifficultyReview()"
+      >
+        儲存調整
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  id="serviceStatusOverlay"
+  class="device-setup-overlay hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="serviceStatusTitle"
+>
+  <div class="device-setup-card">
+    <div class="device-setup-mark">個案服務狀態</div>
+
+    <h2 id="serviceStatusTitle">結束服務</h2>
+
+    <p id="serviceStatusMessage"></p>
+
+    <p class="service-status-warning">
+      此功能只調整平台上的服務狀態，不取代機構正式結案摘要、審核或核備程序。
+    </p>
+
+    <label for="serviceStatusReason">變更原因（必填）</label>
+    <textarea
+      id="serviceStatusReason"
+      rows="4"
+      maxlength="300"
+      placeholder="例如：服務期程結束；日後有需要仍可恢復服務。"
+    ></textarea>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="secondary"
+        onclick="closeServiceStatusDialog()"
+      >
+        取消
+      </button>
+
+      <button
+        id="serviceStatusConfirmButton"
+        type="button"
+        class="primary service-confirm-button"
+        onclick="confirmServiceStatusChange()"
+      >
+        確認結束服務
+      </button>
+    </div>
+  </div>
+</div>
+
+  <script>
+    const questions = [
+      {
+        title: '請個案說出今天的完整日期',
+        hint: '年、月、日都對才算正確。'
+      },
+      {
+        title: '請個案說出今天是星期幾',
+        hint: '星期對才算正確。'
+      },
+      {
+        title: '請個案說出目前所在的場所',
+        hint: '對所在地有任何描述都算正確；說「我的家」，或正確說出城鎮、醫院、機構的名稱都可接受。'
+      },
+      {
+        title: '請個案說出自己的電話號碼',
+        hint: '訪員確認號碼無誤即算正確；或在會談時，能在二次間隔較長時間內重複相同的號碼即算正確。若長輩沒有電話，改問居住地址。'
+      },
+      {
+        title: '請個案說出自己的年齡',
+        hint: '年齡與出生年月日符合才算正確。'
+      },
+      {
+        title: '請個案說出自己的出生日期',
+        hint: '年、月、日都對才算正確。'
+      },
+      {
+        title: '請個案說出現任總統姓名',
+        hint: '姓氏正確即可。'
+      },
+      {
+        title: '請個案說出前任總統姓名',
+        hint: '姓氏正確即可。'
+      },
+      {
+        title: '請個案說出母親姓名',
+        hint: '不需要特別查證，只需長輩說出一個與自己不同的女性姓名即可。'
+      },
+      {
+        title: '請個案從20開始，每次減3',
+        hint: '期間如有出現任何錯誤，或無法繼續進行，即算錯誤。'
+      }
+    ];
+
+const state = {
+  clients: [],
+  client: null,
+  games: [],
+  selectedGame: null,
+  gameResult: null,
+  difficultyReviewHistory: null,
+  gameRecommendationClientId: null,
+  gameRecommendationRequestId: 0,
+  historyClients: [],
+  historyClient: null,
+  historyClientRequestId: 0,
+  historyClientLoadTimer: null,
+  historyRecordRequestId: 0,
+  historyRecords: [],
+  activitySaved: false,
+  activitySaving: false,
+  difficultyUpdating: false,
+  pendingServiceStatus: null,
+  index: 0,
+  answers: Array(10).fill(null),
+  notes: Array(10).fill(''),
+  result: null
+};
+
+const viewIds = [
+  'homeView',
+  'clientHistoryView',
+  'newClientView',
+  'existingClientView',
+  'activityClientView',
+  'gamePlayView',
+  'activityRecordView',
+  'assessmentView',
+  'resultView'
+];
+
+
+    function showView(viewId) {
+      viewIds.forEach(id => document.getElementById(id).classList.toggle('hidden',id!==viewId));
+      const activityViews=['clientHistoryView','activityClientView','gamePlayView','activityRecordView'];
+      const isActivity=activityViews.includes(viewId);
+      document.querySelector('.shell').classList.toggle('activity-wide',isActivity);
+      const deviceButton=document.querySelector('.device-settings-button');
+      if(deviceButton)deviceButton.disabled=viewId==='gamePlayView' || (viewId==='activityRecordView' && !state.activitySaved);
+      if (isActivity) {
+        const heading=document.getElementById(viewId).querySelector('h2');
+        if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});}
+      }
+      window.scrollTo({top:0,behavior:window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    }
+
+    let activityDialog=null;
+    function openActivityDialog(overlay,firstFocus,onEscape) {
+      if(activityDialog) closeActivityDialog();
+      const shell=document.querySelector('.shell');
+      activityDialog={overlay:overlay,previousFocus:document.activeElement,previousInert:shell.inert,onEscape:onEscape};
+      shell.inert=true;
+      overlay.classList.remove('hidden');
+      (firstFocus || overlay.querySelector('button')).focus({preventScroll:true});
+    }
+    function closeActivityDialog() {
+      if(!activityDialog)return;
+      const dialog=activityDialog;activityDialog=null;
+      dialog.overlay.classList.add('hidden');
+      document.querySelector('.shell').inert=dialog.previousInert;
+      if(dialog.previousFocus && dialog.previousFocus.isConnected && !dialog.previousFocus.disabled)dialog.previousFocus.focus({preventScroll:true});
+    }
+    document.addEventListener('keydown',function(event){
+      if(!activityDialog)return;
+      if(event.key==='Escape'){
+        event.preventDefault();
+        if(activityDialog.onEscape)activityDialog.onEscape();
+        return;
+      }
+      if(event.key!=='Tab')return;
+      const controls=Array.from(activityDialog.overlay.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]')).filter(function(node){return !node.disabled && !node.hidden && node.getClientRects().length;});
+      if(!controls.length){event.preventDefault();return;}
+      const first=controls[0],last=controls[controls.length-1];
+      if(event.shiftKey && (document.activeElement===first || !activityDialog.overlay.contains(document.activeElement))){event.preventDefault();last.focus();}
+      else if(!event.shiftKey && (document.activeElement===last || !activityDialog.overlay.contains(document.activeElement))){event.preventDefault();first.focus();}
+    });
+    window.confirmActivityAction=function(title,message,label,onConfirm,onCancel){
+      document.getElementById('activityConfirmTitle').textContent=title;
+      document.getElementById('activityConfirmMessage').textContent=message;
+      const cancel=document.getElementById('activityConfirmCancel'),accept=document.getElementById('activityConfirmAccept');
+      cancel.textContent=title==='離開尚未儲存的紀錄？'?'繼續填寫':'繼續目前活動';
+      accept.textContent=label;
+      const reject=function(){closeActivityDialog();if(onCancel)onCancel();};
+      cancel.onclick=reject;
+      accept.onclick=function(){closeActivityDialog();if(onConfirm)onConfirm();};
+      openActivityDialog(document.getElementById('activityConfirmOverlay'),cancel,reject);
+    };
+
+
+    function setLoading(show, text) {
+      document
+        .getElementById('loading')
+        .classList.toggle('hidden', !show);
+
+      document.getElementById('loadingText').textContent =
+        text || '資料處理中……';
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+
+      toast.textContent = message;
+      toast.classList.add('show');
+
+      clearTimeout(showToast.timer);
+
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    function handleFailure(error) {
+      setLoading(false);
+
+      const message =
+        error && error.message
+          ? error.message
+          : String(error || '發生未知錯誤');
+
+      showToast(message);
+    }
+    
+function loadDashboardSummary() {
+  if (!currentDevice || !currentDevice.deviceId) return;
+
+  google.script.run
+    .withSuccessHandler(renderDashboardSummary)
+    .withFailureHandler(function(error) {
+      console.error(
+        '首頁統計載入失敗：',
+        error
+      );
+    })
+    .getDashboardSummary(
+      currentDevice.deviceId,
+      currentDevice.stationName
+    );
+}
+
+function renderDashboardSummary(summary) {
+  summary = summary || {};
+
+  document.getElementById(
+    'weeklyActivityCount'
+  ).textContent =
+    summary.weeklyActivityCount ?? 0;
+
+  document.getElementById(
+    'activeClientCount'
+  ).textContent =
+    summary.activeClientCount ?? 0;
+
+  document.getElementById(
+    'enabledGameCount'
+  ).textContent =
+    summary.enabledGameCount ?? 0;
+
+  document.getElementById(
+    'totalActivityCount'
+  ).textContent =
+    summary.totalActivityCount ?? 0;
+}
+
+function loadRecentActivities() {
+  const list =
+    document.getElementById('recentActivityList');
+
+  if (!list) {
+    return;
+  }
+
+  if (!currentDevice || !currentDevice.deviceId) {
+    list.textContent = '請先完成設備設定。';
+    return;
+  }
+
+  list.textContent = '正在載入近期活動……';
+
+  google.script.run
+    .withSuccessHandler(renderRecentActivities)
+    .withFailureHandler(function(error) {
+      list.textContent =
+        '近期活動載入失敗：' +
+        (error.message || error);
+    })
+    .getRecentActivities(
+      5,
+      currentDevice.deviceId,
+      currentDevice.stationName
+    );
+}
+
+function renderRecentActivities(activities) {
+  const list =
+    document.getElementById('recentActivityList');
+
+  list.textContent = '';
+
+  if (!activities || activities.length === 0) {
+    const empty = document.createElement('div');
+
+    empty.className = 'recent-activity-empty';
+    empty.textContent = '目前還沒有活動紀錄。';
+
+    list.appendChild(empty);
+    return;
+  }
+
+  activities.forEach(activity => {
+    const item = document.createElement('article');
+    item.className = 'recent-activity-item';
+
+    const date = document.createElement('div');
+    date.className = 'recent-activity-date';
+    date.textContent = activity.activityDate;
+
+    const content = document.createElement('div');
+    content.className = 'recent-activity-content';
+
+    const client = document.createElement('strong');
+
+    // 首頁僅顯示個案姓名；案號仍保留在資料中供系統辨識。
+    client.textContent = activity.clientName;
+
+    const game = document.createElement('span');
+
+    game.textContent =
+      activity.gameName +
+      '｜' +
+      activity.level +
+      '｜' +
+      activity.help +
+      '｜' +
+      activity.mood;
+
+    const source = document.createElement('span');
+
+    source.textContent =
+      (activity.stationName || '未設定站別') +
+      '・' +
+      (activity.deviceName || '未設定設備');
+
+    content.appendChild(client);
+    content.appendChild(game);
+    content.appendChild(source);
+
+    const score = document.createElement('div');
+    score.className = 'recent-activity-score';
+
+    score.textContent =
+      activity.completion + '%';
+
+    item.appendChild(date);
+    item.appendChild(content);
+    item.appendChild(score);
+
+    list.appendChild(item);
+  });
+}
+
+function showClientHistory(preferredClientId) {
+  if (!currentDevice || !currentDevice.deviceId) {
+    showDeviceSetup('請先完成設備設定。');
+    return;
+  }
+
+  state.historyClient = null;
+  state.historyRecordRequestId+=1;
+  document.getElementById('historyRecordStatus').textContent='';
+  document.getElementById('clientRecordProfile').classList.add('hidden');
+  document.getElementById('clientRecordSummary').classList.add('hidden');
+  document.getElementById('clientGameRecordList').textContent =
+    '正在載入個案清單……';
+  document.getElementById('historyClientSelect').innerHTML =
+    '<option value="">載入中……</option>';
+  showView('clientHistoryView');
+  if(preferredClientId)document.getElementById('historyServiceStatus').value='all';
+  refreshHistoryClientOptions(preferredClientId || '');
+}
+
+function refreshHistoryClientOptions(preferredClientId) {
+  if (!currentDevice || !currentDevice.deviceId) {
+    showHistoryClientLoadError('尚未取得設備資料，請先完成設備設定。');
+    return;
+  }
+
+  const select = document.getElementById('historyClientSelect');
+  const list = document.getElementById('clientGameRecordList');
+  const requestId = Number(state.historyClientRequestId || 0) + 1;
+
+  state.historyClientRequestId = requestId;
+  clearTimeout(state.historyClientLoadTimer);
+  select.innerHTML = '<option value="">載入中……</option>';
+  select.disabled = true;
+  list.textContent = '正在載入個案清單……';
+  showHistoryClientLoadStatus('正在讀取目前站別的個案……', false);
+
+  state.historyClientLoadTimer = setTimeout(function() {
+    if (requestId !== state.historyClientRequestId) return;
+    state.historyClientRequestId += 1;
+    showHistoryClientLoadError(
+      '個案清單讀取逾時。請按「重新載入個案」；若仍失敗，請確認 Code.gs 已更新並重新部署新版。'
+    );
+  }, 20000);
+
+  google.script.run
+    .withSuccessHandler(function(clients) {
+      if (requestId !== state.historyClientRequestId) return;
+      clearTimeout(state.historyClientLoadTimer);
+      state.historyClientLoadTimer = null;
+
+      if (!Array.isArray(clients)) {
+        showHistoryClientLoadError('後端回傳的個案資料格式不正確，請重新部署最新版。');
+        return;
+      }
+
+      hideHistoryClientLoadStatus();
+      renderHistoryClientOptions(clients || [], preferredClientId || '');
+    })
+    .withFailureHandler(function(error) {
+      if (requestId !== state.historyClientRequestId) return;
+      clearTimeout(state.historyClientLoadTimer);
+      state.historyClientLoadTimer = null;
+      showHistoryClientLoadError(
+        '個案清單載入失敗：' + getErrorMessage(error)
+      );
+    })
+    .getClientRecordOptions(
+      currentDevice.deviceId,
+      currentDevice.stationName
+    );
+}
+
+function getErrorMessage(error) {
+  return error && error.message
+    ? error.message
+    : String(error || '發生未知錯誤');
+}
+
+function showHistoryClientLoadStatus(message, isError) {
+  const status = document.getElementById('historyClientLoadStatus');
+  document.getElementById('historyClientLoadMessage').textContent = message;
+  status.classList.toggle('error', Boolean(isError));
+  status.classList.remove('hidden');
+}
+
+function hideHistoryClientLoadStatus() {
+  document.getElementById('historyClientLoadStatus').classList.add('hidden');
+}
+
+function showHistoryClientLoadError(message) {
+  const select = document.getElementById('historyClientSelect');
+  const list = document.getElementById('clientGameRecordList');
+
+  select.innerHTML = '<option value="">載入失敗</option>';
+  select.disabled = true;
+  state.historyClients = [];
+  state.historyClient = null;
+  document.getElementById('clientRecordProfile').classList.add('hidden');
+  document.getElementById('clientRecordSummary').classList.add('hidden');
+  list.textContent = message;
+  showHistoryClientLoadStatus(message, true);
+  showToast(message);
+}
+
+function renderHistoryClientOptions(clients, preferredClientId) {
+  state.historyClients = clients || [];
+  filterHistoryClientOptions(preferredClientId);
+}
+
+function filterHistoryClientOptions(preferredClientId) {
+  state.historyRecordRequestId+=1;
+  const status = document.getElementById('historyServiceStatus').value;
+  const select = document.getElementById('historyClientSelect');
+  const previousId = preferredClientId || select.value;
+  const clients = state.historyClients.filter(function(client) {
+    return status === 'all' || client.status === status;
+  });
+
+  select.textContent = '';
+
+  if (!clients.length) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '此狀態目前沒有個案';
+    select.appendChild(option);
+    select.disabled = true;
+    state.historyClient = null;
+    document.getElementById('clientRecordProfile').classList.add('hidden');
+    document.getElementById('clientRecordSummary').classList.add('hidden');
+    document.getElementById('clientGameRecordList').textContent =
+      '此狀態目前沒有個案。';
+    return;
+  }
+
+  clients.forEach(function(client) {
+    const option = document.createElement('option');
+    option.value = client.id;
+    option.textContent = [
+      client.name,
+      client.age + '歲',
+      client.difficulty || '待評估'
+    ].join('｜');
+    select.appendChild(option);
+  });
+
+  const preferredExists = clients.some(function(client) {
+    return client.id === previousId;
+  });
+
+  select.value = preferredExists ? previousId : clients[0].id;
+  select.disabled = false;
+  loadClientGameRecords();
+}
+
+
+function loadClientGameRecords() {
+  if(!currentDevice || !currentDevice.deviceId)return;
+  const clientId=document.getElementById('historyClientSelect').value;
+  const list=document.getElementById('clientGameRecordList');
+  const status=document.getElementById('historyRecordStatus');
+  const requestId=++state.historyRecordRequestId;
+  state.historyClient=null;
+  document.getElementById('clientRecordProfile').classList.add('hidden');
+  document.getElementById('clientRecordSummary').classList.add('hidden');
+  if(!clientId){list.textContent='請先選擇個案。';status.textContent='';return;}
+  list.textContent='正在載入活動紀錄……';list.setAttribute('aria-busy','true');
+  status.textContent='正在載入活動紀錄……';
+  google.script.run.withSuccessHandler(function(result){
+    if(requestId!==state.historyRecordRequestId || document.getElementById('historyClientSelect').value!==clientId)return;
+    list.setAttribute('aria-busy','false');renderClientGameRecords(result);
+  }).withFailureHandler(function(error){
+    if(requestId!==state.historyRecordRequestId)return;
+    list.setAttribute('aria-busy','false');list.textContent='';status.textContent='活動紀錄載入失敗：'+getErrorMessage(error);
+  }).getClientGameRecords({deviceId:currentDevice.deviceId,stationName:currentDevice.stationName,clientId:clientId,period:document.getElementById('historyPeriod').value,gameId:document.getElementById('historyGameSelect').value,resultStatus:document.getElementById('historyResultStatus').value});
+}
+
+
+function renderClientGameRecords(result) {
+  result = result || {};
+  const client = result.client || {};
+  const summary = result.summary || {};
+  const records = result.records || [];
+  const profile = document.getElementById('clientRecordProfile');
+  const statusBadge = document.getElementById('clientRecordStatus');
+  const statusButton = document.getElementById('serviceStatusButton');
+
+  state.historyClient = client;
+  document.getElementById('clientRecordName').textContent = client.name || '';
+  document.getElementById('clientRecordDetails').textContent =
+    (client.age || '—') + '歲｜目前難度：' +
+    (client.difficulty || '待評估') + '｜主要帶領者：' +
+    (client.worker || '未設定');
+
+  const isClosed = client.status === '已結案';
+  statusBadge.textContent = isClosed ? '已結束服務' : (client.status || '服務中');
+  statusBadge.classList.toggle('closed', isClosed);
+  statusButton.textContent = isClosed ? '恢復服務' : '結束服務';
+  statusButton.classList.toggle('close-service', !isClosed);
+  profile.classList.remove('hidden');
+
+  const gameSelect = document.getElementById('historyGameSelect');
+  const selectedGameId = gameSelect.value;
+  gameSelect.textContent = '';
+  const allGamesOption = document.createElement('option');
+  allGamesOption.value = '';
+  allGamesOption.textContent = '全部遊戲';
+  gameSelect.appendChild(allGamesOption);
+  (result.games || []).forEach(function(game) {
+    const option = document.createElement('option');
+    option.value = game.id;
+    option.textContent = game.name;
+    gameSelect.appendChild(option);
+  });
+  if ([].some.call(gameSelect.options, function(option) {
+    return option.value === selectedGameId;
+  })) {
+    gameSelect.value = selectedGameId;
+  }
+
+  renderClientRecordSummary(summary, client);
+  renderClientGameRecordList(records, summary);
+}
+
+
+function renderClientRecordSummary(summary,client) {
+  const container=document.getElementById('clientRecordSummary');
+  const items=[['符合條件',Number(summary.totalCount||0)+' 次'],['已完成',Number(summary.completedCount||0)+' 次'],['中途結束',Number(summary.abandonedCount||0)+' 次'],['距下次難度檢視',Number(summary.nextReviewIn||3)+' 次']];
+  container.textContent='';
+  items.forEach(function(item){const card=document.createElement('div'),label=document.createElement('span'),value=document.createElement('strong');label.textContent=item[0];value.textContent=item[1];card.appendChild(label);card.appendChild(value);container.appendChild(card);});
+  container.classList.remove('hidden');
+}
+
+function recordStatusBadge(record) {
+  const status=document.createElement('span');status.className='history-status'+(record.completed?'':' abandoned');status.textContent=record.completed?'已完成':'中途結束';return status;
+}
+function recordDetailsButton(record) {
+  const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='查看紀錄';button.setAttribute('aria-label','查看'+(record.date||'')+' '+(record.gameName||'活動')+'的詳細紀錄');button.addEventListener('click',function(){showActivityRecordDetails(record);});return button;
+}
+function renderClientGameRecordList(records,summary) {
+  const list=document.getElementById('clientGameRecordList');list.textContent='';state.historyRecords=records;
+  document.getElementById('historyRecordStatus').textContent=records.length?'已載入 '+records.length+' 筆活動紀錄。':'目前篩選條件下沒有活動紀錄。';
+  if(!records.length)return;
+  if(Number(summary.totalCount||0)>Number(summary.shownCount||0)){
+    const note=document.createElement('div');note.className='notice';note.textContent='符合條件共 '+summary.totalCount+' 筆，目前顯示最近 '+summary.shownCount+' 筆。';list.appendChild(note);
+  }
+  const wrap=document.createElement('div');wrap.className='history-table-wrap';
+  const table=document.createElement('table');table.className='history-table';
+  const caption=document.createElement('caption');caption.textContent='活動摘要；各遊戲完成度請依當次活動內容解讀。';table.appendChild(caption);
+  const thead=document.createElement('thead'),tr=document.createElement('tr');
+  ['活動','日期','難度','狀態','完成度','情緒','詳細紀錄'].forEach(function(text){const th=document.createElement('th');th.scope='col';th.textContent=text;tr.appendChild(th);});thead.appendChild(tr);table.appendChild(thead);
+  const tbody=document.createElement('tbody'),cards=document.createElement('div');cards.className='history-cards';
+  records.forEach(function(record){
+    const row=document.createElement('tr');
+    [record.gameName||'未命名活動',record.date||'—',record.level||'—',recordStatusBadge(record),Number(record.completion||0)+'%',record.mood||'未填寫',recordDetailsButton(record)].forEach(function(value){const td=document.createElement('td');if(typeof value==='string')td.textContent=value;else td.appendChild(value);row.appendChild(td);});tbody.appendChild(row);
+    const card=document.createElement('article');card.className='history-card';
+    const heading=document.createElement('div');heading.className='history-card-heading';const titleArea=document.createElement('div'),title=document.createElement('h3'),date=document.createElement('time');
+    title.textContent=record.gameName||'未命名活動';date.textContent=record.date||'';titleArea.appendChild(title);titleArea.appendChild(date);heading.appendChild(titleArea);heading.appendChild(recordStatusBadge(record));card.appendChild(heading);
+    const meta=document.createElement('p');meta.textContent='難度：'+(record.level||'—')+'｜完成度：'+Number(record.completion||0)+'%';card.appendChild(meta);
+    const observation=document.createElement('p');observation.textContent='情緒：'+(record.mood||'未填寫')+'｜協助：'+(record.help||'未填寫');card.appendChild(observation);card.appendChild(recordDetailsButton(record));cards.appendChild(card);
+  });
+  table.appendChild(tbody);wrap.appendChild(table);list.appendChild(wrap);list.appendChild(cards);
+}
+function showActivityRecordDetails(record) {
+  document.getElementById('activityDetailTitle').textContent=record.gameName||'活動詳細紀錄';
+  const body=document.getElementById('activityDetailBody');body.textContent='';
+  const fields=document.createElement('dl');fields.className='record-detail-fields';
+  [['日期',record.date||'—'],['狀態',record.completed?'已完成':'中途結束'],['本次難度',record.level||'—'],['完成度',Number(record.completion||0)+'%'],['協助程度',record.help||'未填寫'],['情緒反應',record.mood||'未填寫'],['帶領人員',record.worker||'未填寫'],['活動時間',formatRecordDuration(record.durationSeconds)],['得分',Number(record.score||0)],['答對／答錯',Number(record.correctCount||0)+'／'+Number(record.wrongCount||0)],['提示次數',Number(record.hintCount||0)]].forEach(function(item){const group=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent=item[0];value.textContent=String(item[1]);group.appendChild(label);group.appendChild(value);fields.appendChild(group);});body.appendChild(fields);
+  const note=document.createElement('p');note.textContent='服務觀察：\n'+(record.note||'未填寫');body.appendChild(note);
+  openActivityDialog(document.getElementById('activityDetailOverlay'),document.getElementById('activityDetailClose'),closeActivityDialog);
+}
+
+
+function formatRecordDuration(seconds) {
+  const total = Math.max(0, Number(seconds || 0));
+  const minutes = Math.floor(total / 60);
+  const rest = Math.round(total % 60);
+  return minutes ? minutes + '分' + rest + '秒' : rest + '秒';
+}
+
+function openServiceStatusDialog() {
+  const client = state.historyClient;
+  if (!client || !client.id) return;
+
+  const isClosed = client.status === '已結案';
+  const targetStatus = isClosed ? '服務中' : '已結案';
+  state.pendingServiceStatus = targetStatus;
+
+  document.getElementById('serviceStatusTitle').textContent =
+    isClosed ? '恢復服務' : '結束服務';
+  document.getElementById('serviceStatusMessage').textContent = isClosed
+    ? '確定要讓「' + client.name + '」重新出現在評估與遊戲名單嗎？'
+    : '結束後，「' + client.name + '」不再出現在評估、再測與遊戲名單，但歷史紀錄會完整保留。';
+  document.getElementById('serviceStatusReason').value = '';
+
+  const confirmButton = document.getElementById('serviceStatusConfirmButton');
+  confirmButton.textContent = isClosed ? '確認恢復服務' : '確認結束服務';
+  confirmButton.classList.toggle('close-service', !isClosed);
+  openActivityDialog(document.getElementById('serviceStatusOverlay'),document.getElementById('serviceStatusReason'),closeServiceStatusDialog);
+}
+
+function closeServiceStatusDialog() {
+  state.pendingServiceStatus = null;
+  closeActivityDialog();
+}
+
+function confirmServiceStatusChange() {
+  const client = state.historyClient;
+  const targetStatus = state.pendingServiceStatus;
+  const reason = document.getElementById('serviceStatusReason').value.trim();
+
+  if (!client || !targetStatus) return;
+  if (reason.length < 2) {
+    showToast('請填寫至少2個字的變更原因。');
+    return;
+  }
+
+  setLoading(true, targetStatus === '已結案' ? '正在結束服務……' : '正在恢復服務……');
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      setLoading(false);
+      closeServiceStatusDialog();
+      document.getElementById('historyServiceStatus').value = result.status;
+      showToast(
+        result.status === '已結案'
+          ? '已結束「' + result.clientName + '」的服務，紀錄仍完整保留。'
+          : '已恢復「' + result.clientName + '」的服務。'
+      );
+      refreshHistoryClientOptions(result.clientId);
+      loadClients();
+      loadDashboardSummary();
+    })
+    .withFailureHandler(handleFailure)
+    .updateClientServiceStatus({
+      deviceId: currentDevice.deviceId,
+      stationName: currentDevice.stationName,
+      clientId: client.id,
+      targetStatus: targetStatus,
+      reason: reason,
+      operator: currentDevice.defaultWorker || ''
+    });
+}
+
+function goHome() {
+  resetAssessment();
+  showView('homeView');
+  loadClients();
+  loadDashboardSummary();
+  loadRecentActivities();
+}
+
+    function showNewClient() {
+      document.getElementById('newClientForm').reset();
+      updateBirthDateOptions();
+      document.querySelector(
+        '#newClientForm [name="worker"]'
+      ).value = currentDevice && currentDevice.defaultWorker
+        ? currentDevice.defaultWorker
+        : '';
+      showView('newClientView');
+    }
+
+    function showExistingClient() {
+      if (!currentDevice || !currentDevice.deviceId) {
+        showDeviceSetup('請先完成設備設定。');
+        return;
+      }
+
+      state.client = null;
+      const select = document.getElementById('clientSelect');
+      select.innerHTML = '<option value="">載入中……</option>';
+      select.disabled = true;
+      document.getElementById('clientPreview').classList.add('hidden');
+      document.getElementById('historyPanel').classList.add('hidden');
+      document.getElementById('startExistingButton').disabled = true;
+      showView('existingClientView');
+      loadClients();
+    }
+
+    function initializeBirthDateSelectors() {
+      const yearSelect = document.getElementById('birthYear');
+      const monthSelect = document.getElementById('birthMonth');
+      const currentYear = new Date().getFullYear();
+
+      for (let year = currentYear - 55; year >= currentYear - 120; year--) {
+        const option = document.createElement('option');
+        option.value = String(year);
+        option.textContent = year + '年';
+        yearSelect.appendChild(option);
+      }
+
+      for (let month = 1; month <= 12; month++) {
+        const option = document.createElement('option');
+        option.value = String(month);
+        option.textContent = month + '月';
+        monthSelect.appendChild(option);
+      }
+    }
+
+    function updateBirthDateOptions() {
+      const year = Number(document.getElementById('birthYear').value);
+      const month = Number(document.getElementById('birthMonth').value);
+      const daySelect = document.getElementById('birthDay');
+      const previousDay = Number(daySelect.value);
+
+      daySelect.innerHTML = '<option value="">日</option>';
+
+      if (!year || !month) {
+        daySelect.disabled = true;
+        return;
+      }
+
+      const dayCount = new Date(year, month, 0).getDate();
+
+      for (let day = 1; day <= dayCount; day++) {
+        const option = document.createElement('option');
+        option.value = String(day);
+        option.textContent = day + '日';
+        daySelect.appendChild(option);
+      }
+
+      daySelect.disabled = false;
+
+      if (previousDay && previousDay <= dayCount) {
+        daySelect.value = String(previousDay);
+      }
+
+      syncAgeFromBirthDate();
+    }
+
+    function calculateAgeFromBirthParts(year, month, day) {
+      const today = new Date();
+      let age = today.getFullYear() - year;
+
+      if (
+        today.getMonth() + 1 < month ||
+        (
+          today.getMonth() + 1 === month &&
+          today.getDate() < day
+        )
+      ) {
+        age--;
+      }
+
+      return age;
+    }
+
+    function syncAgeFromBirthDate() {
+      const year = Number(document.getElementById('birthYear').value);
+      const month = Number(document.getElementById('birthMonth').value);
+      const day = Number(document.getElementById('birthDay').value);
+
+      if (!year || !month || !day) return;
+
+      document.querySelector(
+        '#newClientForm [name="age"]'
+      ).value = calculateAgeFromBirthParts(year, month, day);
+    }
+
+
+
+    function loadClients() {
+  if (!currentDevice || !currentDevice.deviceId) return;
+
+  google.script.run
+    .withSuccessHandler(clients => {
+      state.clients = clients || [];
+
+      const selectIds = [
+        'clientSelect',
+        'activityClientSelect'
+      ];
+
+      selectIds.forEach(selectId => {
+        const select =
+          document.getElementById(selectId);
+
+        select.innerHTML =
+          '<option value="">請選擇個案</option>';
+
+        state.clients.forEach(client => {
+          const option =
+            document.createElement('option');
+
+          option.value = client.id;
+
+          option.textContent = [
+            client.name,
+            client.age + '歲',
+            client.difficulty || '待評估'
+          ].join('｜');
+
+          select.appendChild(option);
+        });
+
+        // iPad內建瀏覽器有時會視覺上顯示第一筆，卻沒有真正觸發選取事件。
+        select.value = '';
+        select.disabled = false;
+      });
+
+      document
+        .getElementById('clientPreview')
+        .classList.add('hidden');
+
+      document
+        .getElementById('historyPanel')
+        .classList.add('hidden');
+
+      document
+        .getElementById('activityClientPreview')
+        .classList.add('hidden');
+
+      document
+        .getElementById('gameRecommendationArea')
+        .classList.add('hidden');
+
+document
+  .getElementById('activityTrendPanel')
+  .classList.add('hidden');
+
+      document
+        .getElementById('startExistingButton')
+        .disabled = true;
+
+      const existingView = document.getElementById('existingClientView');
+
+      if (
+        state.clients.length === 1 &&
+        !existingView.classList.contains('hidden')
+      ) {
+        document.getElementById('clientSelect').value =
+          state.clients[0].id;
+        previewSelectedClient();
+      }
+
+      const activityView = document.getElementById('activityClientView');
+
+      if (
+        state.clients.length === 1 &&
+        !activityView.classList.contains('hidden')
+      ) {
+        document.getElementById('activityClientSelect').value =
+          state.clients[0].id;
+        loadGameRecommendations();
+      }
+    })
+    .withFailureHandler(handleFailure)
+    .getClientOptions(
+      currentDevice.deviceId,
+      currentDevice.stationName
+    );
+}
+
+function previewSelectedClient() {
+  const clientId =
+    document.getElementById('clientSelect').value;
+
+  const client = state.clients.find(
+    item => item.id === clientId
+  );
+
+  const preview =
+    document.getElementById('clientPreview');
+
+  const historyPanel =
+    document.getElementById('historyPanel');
+
+  const startButton =
+    document.getElementById('startExistingButton');
+
+  if (!client) {
+    preview.classList.add('hidden');
+    historyPanel.classList.add('hidden');
+    startButton.disabled = true;
+    return;
+  }
+
+  preview.textContent = '';
+
+  const name = document.createElement('strong');
+
+  name.textContent =
+    client.name + '｜' + client.age + '歲';
+
+  const details = document.createElement('span');
+
+  details.textContent =
+    '教育程度：' +
+    client.education +
+    '；目前難度：' +
+    client.difficulty +
+    '｜由夥伴陪同進行';
+
+  preview.appendChild(name);
+  preview.appendChild(details);
+  preview.classList.remove('hidden');
+
+  startButton.disabled = false;
+
+  loadClientHistory(client.id);
+}
+
+function loadClientHistory(clientId) {
+  const historyPanel =
+    document.getElementById('historyPanel');
+
+  const historySummary =
+    document.getElementById('historySummary');
+
+  const historyList =
+    document.getElementById('historyList');
+
+  historyPanel.classList.remove('hidden');
+  historySummary.textContent = '正在讀取歷次評估……';
+  historyList.textContent = '';
+
+  google.script.run
+    .withSuccessHandler(renderClientHistory)
+    .withFailureHandler(handleFailure)
+    .getClientHistory(clientId);
+}
+
+function renderClientHistory(result) {
+  const history = result.history || [];
+
+  document.getElementById('historyCount').textContent =
+    history.length + ' 次';
+
+  document.getElementById('historySummary').textContent =
+    result.summary || '尚無趨勢摘要。';
+
+  const difficultyElement =
+    document.getElementById('difficultyChange');
+
+  difficultyElement.textContent =
+    result.difficultyChange || '';
+
+  const historyList =
+    document.getElementById('historyList');
+
+  historyList.textContent = '';
+
+  if (history.length === 0) {
+    const empty = document.createElement('div');
+
+    empty.className = 'history-item';
+    empty.textContent = '目前沒有SPMSQ評估紀錄。';
+
+    historyList.appendChild(empty);
+    return;
+  }
+
+  history.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'history-item';
+
+    const date = document.createElement('div');
+    date.className = 'history-date';
+    date.textContent =
+      item.date + '｜' + (item.assessor || '未填評估者');
+
+    const resultBox = document.createElement('div');
+    resultBox.className = 'history-result';
+
+    const score = document.createElement('strong');
+    score.textContent =
+      '錯誤 ' + item.rawErrors + '／10';
+
+    const details = document.createElement('span');
+    details.textContent = item.band;
+
+    resultBox.appendChild(score);
+    resultBox.appendChild(details);
+
+    const level = document.createElement('div');
+    level.className = 'history-level';
+    level.textContent =
+      item.workerDecision ||
+      item.recommendedLevel ||
+      '未設定';
+
+    row.appendChild(date);
+    row.appendChild(resultBox);
+    row.appendChild(level);
+
+    historyList.appendChild(row);
+  });
+}
+
+    function startExistingAssessment() {
+      const clientId =
+        document.getElementById('clientSelect').value;
+
+      const client = state.clients.find(
+        item => item.id === clientId
+      );
+
+      if (!client) {
+        showToast('請先選擇服務個案。');
+        return;
+      }
+
+      beginAssessment(client);
+    }
+
+    document
+      .getElementById('newClientForm')
+      .addEventListener('submit', event => {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+
+        const data = Object.fromEntries(
+          formData.entries()
+        );
+
+        if (!currentDevice || !currentDevice.deviceId) {
+          showDeviceSetup('請先完成設備設定。');
+          return;
+        }
+
+        data.deviceId = currentDevice.deviceId;
+        data.stationName = currentDevice.stationName;
+
+        const birthYear = Number(data.birthYear || 0);
+        const birthMonth = Number(data.birthMonth || 0);
+        const birthDay = Number(data.birthDay || 0);
+        const hasAnyBirthPart = birthYear || birthMonth || birthDay;
+
+        if (hasAnyBirthPart && (!birthYear || !birthMonth || !birthDay)) {
+          showToast('出生日期請完整選擇年、月、日。');
+          return;
+        }
+
+        data.birthDate = hasAnyBirthPart
+          ? [
+              String(birthYear).padStart(4, '0'),
+              String(birthMonth).padStart(2, '0'),
+              String(birthDay).padStart(2, '0')
+            ].join('-')
+          : '';
+
+        delete data.birthYear;
+        delete data.birthMonth;
+        delete data.birthDay;
+
+        if (!data.birthDate && !data.age) {
+          showToast('請填寫出生日期或年齡。');
+          return;
+        }
+
+        const enteredAge = Number(data.age || 0);
+
+        if (enteredAge && (enteredAge < 55 || enteredAge > 120)) {
+          showToast('年齡限55至120歲。');
+          return;
+        }
+
+        setLoading(true, '正在建立個案……');
+
+        google.script.run
+          .withSuccessHandler(response => {
+            setLoading(false);
+            showToast('個案建立完成');
+            beginAssessment(response.client);
+          })
+          .withFailureHandler(handleFailure)
+          .createClientFromWeb(data);
+      });
+
+    function resetAssessment() {
+      state.client = null;
+      state.index = 0;
+      state.answers = Array(10).fill(null);
+      state.notes = Array(10).fill('');
+      state.result = null;
+    }
+
+    function beginAssessment(client) {
+      resetAssessment();
+      state.client = client;
+      showView('assessmentView');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const question = questions[state.index];
+      const answer = state.answers[state.index];
+
+      document.getElementById('progressText').textContent =
+        (state.index + 1) + '／10';
+
+      document.getElementById('progressBar').style.width =
+        ((state.index + 1) * 10) + '%';
+
+      document.getElementById('questionNumber').textContent =
+        'QUESTION ' +
+        String(state.index + 1).padStart(2, '0');
+
+      document.getElementById('questionTitle').textContent =
+        question.title;
+
+      document.getElementById('questionHint').textContent =
+        question.hint;
+
+      document.getElementById('questionNote').value =
+        state.notes[state.index] || '';
+
+      document
+        .getElementById('correctButton')
+        .classList.toggle('selected', answer === true);
+
+      document
+        .getElementById('incorrectButton')
+        .classList.toggle('selected', answer === false);
+
+      document.getElementById('previousButton').textContent =
+        state.index === 0 ? '取消' : '上一題';
+
+      document.getElementById('nextButton').textContent =
+        state.index === 9
+          ? '完成並計分'
+          : '下一題';
+
+      document.getElementById('nextButton').disabled =
+        answer === null;
+    }
+
+    function selectAnswer(value) {
+      state.answers[state.index] = value;
+      renderQuestion();
+    }
+
+    function saveCurrentNote() {
+      state.notes[state.index] =
+        document.getElementById('questionNote').value;
+    }
+
+    function previousQuestion() {
+      saveCurrentNote();
+
+      if (state.index === 0) {
+        goHome();
+        return;
+      }
+
+      state.index--;
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      saveCurrentNote();
+
+      if (state.answers[state.index] === null) {
+        showToast('請先判定本題正確或錯誤。');
+        return;
+      }
+
+      if (state.index < 9) {
+        state.index++;
+        renderQuestion();
+        return;
+      }
+
+      submitAssessment();
+    }
+
+    function submitAssessment() {
+      setLoading(true, '正在計算SPMSQ結果……');
+
+      google.script.run
+        .withSuccessHandler(result => {
+          setLoading(false);
+          state.result = result;
+          renderResult();
+        })
+        .withFailureHandler(handleFailure)
+        .saveSpmsqFromWeb({
+          clientId: state.client.id,
+          assessor:
+            state.client.worker || '工作人員',
+          answers: state.answers,
+          questionNotes: state.notes,
+          note: ''
+        });
+    }
+
+    function renderResult() {
+      const result = state.result;
+
+      document.getElementById('scoreValue').textContent =
+        result.rawErrors;
+
+      document.getElementById('resultBand').textContent =
+        result.band;
+
+      document.getElementById('recommendedLevel').textContent =
+        result.recommendedLevel;
+
+      document.getElementById('recommendationText').textContent =
+        result.recommendation;
+
+      document.getElementById('difficultySelect').value =
+        result.workerDecision ||
+        result.recommendedLevel;
+
+      showView('resultView');
+    }
+
+    function applyDifficulty() {
+      const level =
+        document.getElementById('difficultySelect').value;
+
+      setLoading(true, '正在套用遊戲難度……');
+
+      google.script.run
+        .withSuccessHandler(() => {
+          setLoading(false);
+          showToast('難度已更新為「' + level + '」');
+          goHome();
+        })
+        .withFailureHandler(handleFailure)
+        .updateClientDifficulty(
+          state.client.id,
+          level
+        );
+    }
+
+    function finishWithoutChange() {
+      showToast('SPMSQ結果已保存');
+      goHome();
+    }
+
+function showActivityStart() {
+  state.client = null;
+  state.games = [];
+  state.selectedGame = null;
+  state.gameRecommendationClientId = null;
+
+  const select = document.getElementById('activityClientSelect');
+  select.innerHTML = '<option value="">載入中……</option>';
+  select.disabled = true;
+
+  document
+    .getElementById('activityClientPreview')
+    .classList.add('hidden');
+
+  document
+    .getElementById('gameRecommendationArea')
+    .classList.add('hidden');
+
+document
+  .getElementById('activityTrendPanel')
+  .classList.add('hidden');
+
+  showView('activityClientView');
+  loadClients();
+}
+
+
+function loadClientActivityTrend(clientId,requestId) {
+  const panel=document.getElementById('activityTrendPanel'),count=document.getElementById('activityTrendCount');
+  panel.classList.remove('hidden');count.textContent='正在查詢活動歷程……';
+  state.lastPlayedByGame={};state.activityHistoryLoaded=false;state.activityHistoryFailed=false;
+  google.script.run.withSuccessHandler(function(result){
+    if(!state.client || state.client.id!==clientId || requestId!==state.gameRecommendationRequestId)return;
+    renderClientActivityTrend(result);
+  }).withFailureHandler(function(error){
+    if(!state.client || state.client.id!==clientId || requestId!==state.gameRecommendationRequestId)return;
+    state.activityHistoryFailed=true;count.textContent='活動歷程暫時無法讀取，可稍後重試。';
+    updateLastPlayedLabels();
+  }).getClientActivityTrend(clientId);
+}
+function updateLastPlayedLabels() {
+  document.querySelectorAll('#gameRecommendationArea .game-last-played').forEach(function(node){
+    const last=(state.lastPlayedByGame||{})[node.dataset.gameId];
+    node.textContent=last?'上次遊玩：'+last:state.activityHistoryLoaded?'尚未玩過':state.activityHistoryFailed?'遊玩日期暫時無法讀取':'正在查詢遊玩紀錄……';
+  });
+}
+function renderClientActivityTrend(result) {
+  result=result||{};state.activityHistoryLoaded=true;state.activityHistoryFailed=false;state.lastPlayedByGame=result.lastPlayedByGame||{};
+  document.getElementById('activityTrendCount').textContent='已記錄 '+Number(result.totalCount||0)+' 次活動';updateLastPlayedLabels();
+}
+
+
+function loadGameRecommendations(forceRefresh) {
+  const clientId =
+    document.getElementById(
+      'activityClientSelect'
+    ).value;
+
+  const preview =
+    document.getElementById(
+      'activityClientPreview'
+    );
+
+  const gameArea =
+    document.getElementById(
+      'gameRecommendationArea'
+    );
+
+  const client = state.clients.find(
+    item => item.id === clientId
+  );
+
+if (!client) {
+  state.gameRecommendationRequestId+=1;
+  state.client = null;
+  state.gameRecommendationClientId = null;
+  preview.classList.add('hidden');
+  gameArea.classList.add('hidden');
+
+  document
+    .getElementById('activityTrendPanel')
+    .classList.add('hidden');
+
+  return;
+}
+
+  if (
+    forceRefresh!==true && state.gameRecommendationClientId === clientId &&
+    !gameArea.classList.contains('hidden')
+  ) {
+    return;
+  }
+
+  state.gameRecommendationClientId = clientId;
+  const requestId=++state.gameRecommendationRequestId;
+
+  state.client = client;
+
+  preview.textContent = '';
+
+  const name = document.createElement('strong');
+
+  name.textContent =
+    client.name + '｜' + client.age + '歲';
+
+  const details = document.createElement('span');
+
+  details.textContent =
+    '目前套用難度：' +
+    client.difficulty +
+    '；最後SPMSQ：' +
+    (client.lastSpmsqDate || '尚未評估');
+
+  preview.appendChild(name);
+  preview.appendChild(details);
+  preview.classList.remove('hidden');
+loadClientActivityTrend(client.id,requestId);
+  gameArea.classList.remove('hidden');
+  gameArea.textContent = '正在取得活動建議……';
+  gameArea.setAttribute('aria-busy','true');
+
+  google.script.run
+    .withSuccessHandler(function(result){
+      if(state.gameRecommendationClientId!==clientId || requestId!==state.gameRecommendationRequestId)return;
+      renderGameRecommendations(result);
+    })
+    .withFailureHandler(function(error) {
+      if(state.gameRecommendationClientId!==clientId || requestId!==state.gameRecommendationRequestId)return;
+      state.gameRecommendationClientId = null;
+      gameArea.setAttribute('aria-busy','false');
+      gameArea.textContent='活動建議讀取失敗，請按「載入建議活動」重試。';
+      handleFailure(error);
+    })
+    .getRecommendedGames(client.id);
+}
+
+
+function renderGameRecommendations(result) {
+  state.games=(result && result.games)||[];
+  const gameArea=document.getElementById('gameRecommendationArea');gameArea.textContent='';gameArea.setAttribute('aria-busy','false');
+  if(!state.games.length){const empty=document.createElement('div');empty.className='notice';empty.textContent='目前沒有啟用中的活動。';gameArea.appendChild(empty);return;}
+  function group(title,className){const section=document.createElement('section');section.className=className;const heading=document.createElement('h3');heading.className='game-group-title';heading.textContent=title;section.appendChild(heading);gameArea.appendChild(section);return section;}
+  const priority=group('今天先試這個','game-priority');
+  const backupGroup=state.games.length>1?group('也可以試試','game-backup-group'):null;
+  const backups=document.createElement('div');backups.className='game-backups';if(backupGroup)backupGroup.appendChild(backups);
+  const extraGroup=state.games.length>6?group('其他活動','game-extra-group'):null;
+  const extra=document.createElement('div');extra.className='game-extra-grid';if(extraGroup){extraGroup.id='extraActivityGames';extraGroup.hidden=true;extraGroup.appendChild(extra);}
+  const icons={memory:'🍎 🍎',puzzle:'🧩',silhouette:'🔍',shopping:'🛒',dice:'🎲',battle:'🙋 🙋',numberSearch:'🔎 123',numberPlacement:'🎱',teaDelivery:'🍵',drumPads:'🥁'};
+  state.games.forEach(function(game,index){
+    const card=document.createElement('article');card.className='game-card'+(index===0?' recommended':'')+(game.isTestGame===true?' test-game':'');
+    const tag=document.createElement('span');tag.className='game-tag'+(game.isTestGame===true?' test-game-tag':'');tag.textContent=(index===0?'優先推薦':'難度：'+game.suggestedLevel)+(game.isTestGame===true?'・新遊戲測試':'');
+    const cover=document.createElement('div');cover.className='game-cover';cover.setAttribute('aria-hidden','true');cover.textContent=icons[game.moduleKey]||'🎮';
+    const title=document.createElement('h3');title.textContent=game.name;
+    const skill=document.createElement('div');skill.className='game-skill';skill.textContent=game.skill||'';
+    const settings=document.createElement('div');settings.className='game-settings';settings.textContent='本次難度：'+game.suggestedLevel+'｜約 '+game.duration+' 分鐘';
+    const last=document.createElement('div');last.className='game-last-played';last.dataset.gameId=game.id;
+    const reason=document.createElement('div');reason.className='game-recommendation-reason';reason.textContent=game.recommendationReason||(index===0?'依目前活動難度安排。':'');
+    const guidance=document.createElement('details'),guideTitle=document.createElement('summary'),guideText=document.createElement('p');guideTitle.textContent='帶領提醒';guideText.className='game-guidance';guideText.textContent=[game.guidance,game.originalHint].filter(Boolean).join(' ');guidance.appendChild(guideTitle);guidance.appendChild(guideText);
+    const ready=Boolean(window.WarmMemoryGameRegistry && game.moduleKey && window.WarmMemoryGameRegistry.has(game.moduleKey));
+    const button=document.createElement('button');button.type='button';button.className=game.playable && ready?'primary':'secondary';button.textContent=!game.playable?'查看活動設定':ready?'開始活動':'查看載入狀態';button.setAttribute('aria-label',button.textContent+'：'+game.name);button.addEventListener('click',function(){selectGame(game.id);});
+    [tag,cover,title,skill,settings,last].forEach(function(node){card.appendChild(node);});if(reason.textContent)card.appendChild(reason);if(guideText.textContent)card.appendChild(guidance);card.appendChild(button);
+    (index===0?priority:index<6?backups:extra).appendChild(card);
+  });
+  updateLastPlayedLabels();
+  if(extraGroup){const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary game-more-toggle';toggle.setAttribute('aria-controls',extraGroup.id);toggle.setAttribute('aria-expanded','false');toggle.textContent='展開其他活動（'+(state.games.length-6)+'款）';toggle.addEventListener('click',function(){extraGroup.hidden=!extraGroup.hidden;toggle.setAttribute('aria-expanded',String(!extraGroup.hidden));toggle.textContent=extraGroup.hidden?'展開其他活動（'+(state.games.length-6)+'款）':'收起其他活動';});gameArea.appendChild(toggle);}
+}
+
+
+function selectGame(gameId) {
+  const game = state.games.find(
+    item => item.id === gameId
+  );
+
+  if (!game || !state.client) {
+    showToast('找不到遊戲或個案資料。');
+    return;
+  }
+
+  state.selectedGame = game;
+  state.gameResult = null;
+
+  if (!game.playable || !game.moduleKey) {
+    showToast('遊戲設定尚未完成，請重新執行「安裝／更新遊戲模組」。');
+    return;
+  }
+
+  if (!window.WarmMemoryGameRegistry) {
+    showToast('遊戲模組檔未載入，請更新 GameModules 並重新部署新版本。');
+    return;
+  }
+
+  if (!window.WarmMemoryGameRegistry.has(game.moduleKey)) {
+    showToast(
+      '找不到模組「' + game.moduleKey + '」，請確認 GameModules 已更新並重新部署。'
+    );
+    return;
+  }
+
+  document.getElementById('gamePlayTitle').textContent =
+    game.name;
+
+  document.getElementById('gamePlayMeta').textContent =
+    state.client.name +
+    '｜難度：' +
+    game.suggestedLevel +
+    '｜夥伴陪同';
+
+  showView('gamePlayView');
+
+  try {
+    window.WarmMemoryGameRegistry.start(
+      game.moduleKey,
+      document.getElementById('gameModuleMount'),
+      {
+        gameId: game.id,
+        moduleKey: game.moduleKey,
+        version: game.version,
+        level: game.suggestedLevel,
+        suggestedItems: game.suggestedItems,
+        guidance: game.guidance,
+        clientName: state.client.name,
+        clientId: state.client.id,
+        deviceId:
+          currentDevice && currentDevice.deviceId
+            ? currentDevice.deviceId
+            : ''
+      },
+      {
+        complete: completePlayableGame,
+        cancel: cancelPlayableGame
+      }
+    );
+  } catch (error) {
+    showToast(error.message || String(error));
+    showView('activityClientView');
+  }
+}
+
+function completePlayableGame(result) {
+  if (!state.selectedGame || !state.client) {
+    showToast('遊戲結果缺少個案或遊戲資料。');
+    showView('activityClientView');
+    return;
+  }
+
+  state.gameResult = result;
+  prepareActivityRecord(result);
+  showView('activityRecordView');
+}
+
+function cancelPlayableGame() {
+  state.gameResult = null;
+  state.selectedGame = null;
+  document.getElementById('gameModuleMount').textContent = '';
+  showView('activityClientView');
+}
+
+
+function setActivityRecordStatus(message,kind) {
+  const status=document.getElementById('activityRecordStatus');status.textContent=message;status.classList.toggle('saved',kind==='saved');status.classList.toggle('error',kind==='error');
+}
+function setActivityRecordControls() {
+  document.querySelectorAll('#activityForm input,#activityForm textarea').forEach(function(node){if(node.type!=='hidden')node.disabled=state.activitySaving || state.activitySaved;});
+  const save=document.getElementById('saveActivityButton');save.disabled=state.activitySaving || state.activitySaved;save.textContent=state.activitySaved?'紀錄已儲存':state.activitySaving?'儲存中……':'儲存活動紀錄';
+  document.getElementById('recordBackButton').disabled=state.activitySaving;
+  document.getElementById('recordHistoryButton').hidden=!state.activitySaved;
+  document.getElementById('recordHistoryButton').disabled=state.activitySaving;
+  document.getElementById('activityForm').setAttribute('aria-busy',String(state.activitySaving));
+}
+function prepareActivityRecord(result) {
+  const game=state.selectedGame;state.activitySaved=false;state.activitySaving=false;state.difficultyReviewHistory=null;
+  const form=document.getElementById('activityForm');form.reset();setActivityRecordControls();
+  document.getElementById('activityHelp').value='';document.getElementById('activityMood').value='';
+  document.getElementById('activityLevel').value=result.level||game.suggestedLevel;
+  document.getElementById('activityWorker').value=(currentDevice && currentDevice.defaultWorker)||state.client.worker||'';
+  document.getElementById('completionInput').value=Math.max(0,Math.min(100,Number(result.completion||0)));updateCompletionValue();
+  document.getElementById('activityCompletionStatus').textContent=result.completed===false?'中途結束':'已完成';
+  const details=document.getElementById('selectedGameDetails');details.textContent='';const title=document.createElement('strong'),description=document.createElement('span');title.textContent=state.client.name+'｜'+game.name;description.textContent=result.completed===false?'已保留結束前的遊戲進度，請補充現場觀察。':'活動已完成，請補充現場觀察。';details.appendChild(title);details.appendChild(description);
+  const summary=document.getElementById('gameResultSummary');summary.textContent='';summary.open=false;
+  const summaryTitle=document.createElement('summary');summaryTitle.textContent='查看遊戲結果詳情';summary.appendChild(summaryTitle);
+  const text=document.createElement('p');text.textContent='得分：'+Number(result.score||0)+'｜答對：'+Number(result.correctCount||0)+'｜答錯：'+Number(result.wrongCount||0)+'｜提示：'+Number(result.hintCount||0)+'｜時間：'+formatRecordDuration(result.durationSeconds);summary.appendChild(text);summary.classList.remove('hidden');
+  setActivityRecordStatus('尚未儲存，請選擇協助程度與情緒反應。');
+}
+function updateCompletionValue() {document.getElementById('completionValue').textContent=document.getElementById('completionInput').value;}
+function backToGameSelection() {
+  if(state.activitySaving)return;
+  const leave=function(){state.gameResult=null;state.selectedGame=null;state.difficultyReviewHistory=null;document.getElementById('gameModuleMount').textContent='';state.gameRecommendationClientId=null;showView('activityClientView');if(state.client){document.getElementById('activityClientSelect').value=state.client.id;loadGameRecommendations();}};
+  if(state.gameResult && !state.activitySaved){window.confirmActivityAction('離開尚未儲存的紀錄？','這次遊戲結果與尚未儲存的觀察將不會留下。可先繼續填寫並儲存。','離開並重新挑選',leave);return;}
+  leave();
+}
+function finishSavedActivity(message) {
+  if(activityDialog && activityDialog.overlay.id==='difficultyReviewOverlay')closeActivityDialog();
+  state.activitySaving=false;state.difficultyUpdating=false;state.difficultyReviewHistory=null;
+  const deviceButton=document.querySelector('.device-settings-button');if(deviceButton)deviceButton.disabled=false;
+  document.getElementById('gameModuleMount').textContent='';
+  setActivityRecordControls();setActivityRecordStatus(message||'活動紀錄已儲存。','saved');
+  document.getElementById('recordBackButton').focus({preventScroll:true});
+}
+function showDifficultyReview(history) {
+  state.difficultyReviewHistory=history;state.activitySaving=false;
+  const count=Number(history.gameCount||0),level=history.clientDifficulty||(state.client && state.client.difficulty)||'入門';
+  document.getElementById('difficultyReviewMessage').textContent='活動紀錄已儲存。此個案已進行 '+count+' 次活動（包含中途結束，每3次檢視一次）。請依最近活動的協助程度、情緒及現場觀察，決定是否調整難度。';
+  document.getElementById('difficultyReviewStatus').textContent='';
+  document.getElementById('difficultyReviewSelect').value=['入門','標準','進階'].includes(level)?level:'入門';
+  setActivityRecordControls();
+  openActivityDialog(document.getElementById('difficultyReviewOverlay'),document.getElementById('difficultyReviewSelect'),keepDifficultyAndFinish);
+}
+function keepDifficultyAndFinish() {
+  if(state.difficultyUpdating)return;
+  const level=(state.difficultyReviewHistory && state.difficultyReviewHistory.clientDifficulty)||(state.client && state.client.difficulty)||'入門';
+  finishSavedActivity('活動紀錄已儲存；維持「'+level+'」難度。');
+}
+function applyDifficultyReview() {
+  if(state.difficultyUpdating)return;
+  if(!state.client){finishSavedActivity();return;}
+  const level=document.getElementById('difficultyReviewSelect').value;
+  state.difficultyUpdating=true;
+  const controls=Array.from(document.getElementById('difficultyReviewOverlay').querySelectorAll('button,select'));controls.forEach(function(node){node.disabled=true;});
+  document.getElementById('difficultyReviewStatus').textContent='正在更新遊戲難度……';
+  google.script.run.withSuccessHandler(function(){
+    controls.forEach(function(node){node.disabled=false;});state.difficultyUpdating=false;state.client.difficulty=level;
+    const client=state.clients.find(function(item){return item.id===state.client.id;});if(client)client.difficulty=level;
+    finishSavedActivity('活動紀錄已儲存；下次活動難度已調整為「'+level+'」。');
+  }).withFailureHandler(function(error){
+    controls.forEach(function(node){node.disabled=false;});state.difficultyUpdating=false;
+    document.getElementById('difficultyReviewStatus').textContent='活動紀錄已儲存；難度調整失敗：'+getErrorMessage(error)+'。可重試調整或維持目前難度。';
+    document.getElementById('difficultyReviewSelect').focus({preventScroll:true});
+  }).updateClientDifficulty(state.client.id,level);
+}
+document.getElementById('activityForm').addEventListener('change',function(event){
+  if(event.target.name==='activityHelpChoice')document.getElementById('activityHelp').value=event.target.value;
+  if(event.target.name==='activityMoodChoice')document.getElementById('activityMood').value=event.target.value;
+});
+document.getElementById('activityForm').addEventListener('submit',function(event){
+  event.preventDefault();
+  if(state.activitySaving || state.activitySaved)return;
+  if(!state.client || !state.selectedGame || !state.gameResult){setActivityRecordStatus('缺少個案或遊戲結果，請重新挑選活動。','error');return;}
+  if(!currentDevice || !currentDevice.deviceId){showDeviceSetup('請先完成這台設備的登錄。');return;}
+  const form=document.getElementById('activityForm');if(!form.reportValidity())return;
+  const help=document.getElementById('activityHelp').value,mood=document.getElementById('activityMood').value,worker=document.getElementById('activityWorker').value.trim();
+  if(!help || !mood || !worker){setActivityRecordStatus('請填寫帶領人員，並選擇協助程度與情緒反應。','error');return;}
+  const clientId=state.client.id;
+  const activityData={clientId:clientId,gameId:state.selectedGame.id,level:state.gameResult.level||state.selectedGame.suggestedLevel,completion:Math.max(0,Math.min(100,Number(state.gameResult.completion||0))),help:help,mood:mood,note:document.getElementById('activityNote').value,worker:worker,deviceId:currentDevice.deviceId,stationName:currentDevice.stationName,deviceName:currentDevice.deviceName,gameResult:state.gameResult};
+  state.activitySaving=true;setActivityRecordControls();setActivityRecordStatus('正在儲存活動紀錄，請稍候。');
+  google.script.run.withSuccessHandler(function(){
+    state.activitySaved=true;setActivityRecordControls();setActivityRecordStatus('活動紀錄已儲存，正在確認是否需要檢視難度……','saved');
+    google.script.run.withSuccessHandler(function(history){
+      if(history && history.shouldReviewDifficulty){showDifficultyReview(history);return;}
+      finishSavedActivity();
+    }).withFailureHandler(function(error){finishSavedActivity('活動紀錄已儲存；難度檢視暫時無法讀取。這筆紀錄不需再次儲存。');}).getActivityHistory(clientId);
+  }).withFailureHandler(function(error){
+    state.activitySaving=false;setActivityRecordControls();setActivityRecordStatus('儲存失敗：'+getErrorMessage(error)+'。填寫內容已保留，請稍後重試。','error');
+    document.getElementById('saveActivityButton').focus({preventScroll:true});
+  }).saveActivityFromWeb(activityData);
+});
+
+
+const DEVICE_STORAGE_KEY = 'warmMemoryDeviceV1';
+const NEW_GAME_TEST_STATION_NAME = '新遊戲測試站';
+let currentDevice = null;
+let stationDirectory = [];
+
+function loadStationDirectory() {
+  google.script.run
+    .withSuccessHandler(function(items) {
+      stationDirectory = items || [];
+
+      if (document.activeElement === document.getElementById('deviceStationInput')) {
+        renderStationSuggestions();
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('站別清單載入失敗：', error);
+    })
+    .getStationOptions();
+}
+
+function normalizeStationSearchText(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+}
+
+function renderStationSuggestions() {
+  const input = document.getElementById('deviceStationInput');
+  const list = document.getElementById('deviceStationSuggestions');
+  const query = normalizeStationSearchText(input.value);
+
+  list.textContent = '';
+
+  if (!query) {
+    list.classList.add('hidden');
+    return;
+  }
+
+  if (!stationDirectory.length) {
+    const loading = document.createElement('div');
+    loading.className = 'station-suggestion-empty';
+    loading.textContent = '站別清單載入中……';
+    list.appendChild(loading);
+    list.classList.remove('hidden');
+    return;
+  }
+
+  const matches = stationDirectory
+    .filter(function(item) {
+      return (
+        normalizeStationSearchText(item.name).includes(query) ||
+        normalizeStationSearchText(item.code).includes(query)
+      );
+    })
+    .slice(0, 12);
+
+  if (!matches.length) {
+    const empty = document.createElement('div');
+    empty.className = 'station-suggestion-empty';
+    empty.textContent = '查無符合站別，請改用站名或三位數代碼。';
+    list.appendChild(empty);
+    list.classList.remove('hidden');
+    return;
+  }
+
+  matches.forEach(function(item) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'station-suggestion';
+    button.setAttribute('role', 'option');
+
+    const name = document.createElement('span');
+    name.textContent = item.name;
+
+    const code = document.createElement('span');
+    code.className = 'station-suggestion-code';
+    code.textContent = item.code;
+
+    button.appendChild(name);
+    button.appendChild(code);
+    button.addEventListener('click', function() {
+      selectStationSuggestion(item.name);
+    });
+
+    list.appendChild(button);
+  });
+
+  list.classList.remove('hidden');
+}
+
+function selectStationSuggestion(stationName) {
+  document.getElementById('deviceStationInput').value = stationName;
+  hideStationSuggestions();
+}
+
+function hideStationSuggestions() {
+  document
+    .getElementById('deviceStationSuggestions')
+    .classList.add('hidden');
+}
+
+function readSavedDevice() {
+  try {
+    const saved = localStorage.getItem(DEVICE_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function showDeviceSetup(message) {
+  const overlay =
+    document.getElementById('deviceSetupOverlay');
+
+  const messageArea =
+    document.getElementById('deviceSetupMessage');
+
+  const saved = currentDevice || readSavedDevice();
+
+  hideStationSuggestions();
+
+  if (saved) {
+    document.getElementById('deviceStationInput').value =
+      saved.stationName || '';
+
+    document.getElementById('deviceNameInput').value =
+      saved.deviceName || '';
+
+    document.getElementById('deviceWorkerInput').value =
+      saved.defaultWorker || '';
+
+    document.getElementById('devicePairingCodeInput').value =
+      saved.pairingCode || '';
+  } else {
+    document.getElementById('deviceStationInput').value = '';
+    document.getElementById('deviceNameInput').value = '';
+    document.getElementById('deviceWorkerInput').value = '';
+    document.getElementById('devicePairingCodeInput').value = '';
+  }
+
+  messageArea.textContent = message || '';
+  overlay.classList.remove('hidden');
+}
+
+function renderDeviceSummary() {
+  const summary = document.getElementById('deviceSummary');
+  const testBanner = document.getElementById('testStationBanner');
+  const activityModeLead = document.getElementById('activityModeLead');
+  if (!summary) return;
+
+  if (!currentDevice) {
+    summary.textContent = '尚未設定設備';
+    if (testBanner) testBanner.classList.add('hidden');
+    if (activityModeLead) {
+      activityModeLead.textContent =
+        '系統依目前套用難度安排活動，由夥伴陪同長輩一起進行。';
+    }
+    return;
+  }
+
+  const isTestStation =
+    currentDevice.stationName === NEW_GAME_TEST_STATION_NAME;
+
+  if (testBanner) {
+    testBanner.classList.toggle('hidden', !isTestStation);
+  }
+
+  if (activityModeLead) {
+    activityModeLead.textContent = isTestStation
+      ? '【測試站999】請選擇入門、標準或進階測試個案；此站只顯示測試中的新遊戲。'
+      : '系統依目前套用難度安排活動，由夥伴陪同長輩一起進行。';
+  }
+
+  summary.textContent = [
+    (isTestStation ? '【測試站999】' : '') +
+      '目前站別：' + (currentDevice.stationName || '未選擇'),
+    currentDevice.deviceName,
+    '帶領：' + (currentDevice.defaultWorker || '未設定'),
+    '連接碼：' + (currentDevice.pairingCode || '尚無')
+  ].filter(Boolean).join('｜');
+}
+
+function initializeAppData() {
+  loadClients();
+  loadDashboardSummary();
+  loadRecentActivities();
+}
+
+function activateDevice(result) {
+  currentDevice = result;
+
+  localStorage.setItem(
+    DEVICE_STORAGE_KEY,
+    JSON.stringify(result)
+  );
+
+  renderDeviceSummary();
+
+  document
+    .getElementById('deviceSetupOverlay')
+    .classList.add('hidden');
+
+  if (!result.stationName || !result.defaultWorker || !result.pairingCode) {
+    showDeviceSetup(
+      '請選擇本次使用站別，並確認預設帶領人員。'
+    );
+    return;
+  }
+
+  initializeAppData();
+}
+
+function initializeDeviceRecognition() {
+  const saved = readSavedDevice();
+
+  if (!saved || !saved.deviceId) {
+    showDeviceSetup('');
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result && result.found && result.enabled) {
+        activateDevice(result);
+        return;
+      }
+
+      if (result && result.found && !result.enabled) {
+        showDeviceSetup(
+          result.message || '此設備目前已停用。'
+        );
+        return;
+      }
+
+      showDeviceSetup('請重新確認設備設定。');
+    })
+    .withFailureHandler(function(error) {
+      showDeviceSetup(
+        '無法確認設備資料：' +
+        (error.message || error)
+      );
+    })
+    .getDeviceSetting(saved.deviceId);
+}
+
+function saveDeviceSetup() {
+  const stationName =
+    document.getElementById('deviceStationInput')
+      .value.trim();
+
+  const deviceName =
+    document.getElementById('deviceNameInput')
+      .value.trim();
+
+  const defaultWorker =
+    document.getElementById('deviceWorkerInput')
+      .value.trim();
+
+  const pairingCode =
+    document.getElementById('devicePairingCodeInput')
+      .value.trim()
+      .toUpperCase();
+
+  const messageArea =
+    document.getElementById('deviceSetupMessage');
+
+  const saveButton =
+    document.getElementById('saveDeviceButton');
+
+  const saved = readSavedDevice();
+
+  if (!saved && !pairingCode && (!stationName || !deviceName || !defaultWorker)) {
+    messageArea.textContent =
+      '新增設備請選擇本次站別，並填寫設備名稱及預設帶領人員；連接既有設備則輸入連接碼。';
+    return;
+  }
+
+  if (stationName && stationDirectory.length) {
+    const matchedStation = stationDirectory.find(function(item) {
+      return item.name === stationName || item.code === stationName;
+    });
+
+    if (!matchedStation) {
+      messageArea.textContent =
+        '請輸入關鍵字後，從清單選擇正式站名。';
+      return;
+    }
+  }
+
+  const deviceData = {
+    deviceId: saved && saved.deviceId ? saved.deviceId : '',
+    stationName: stationName,
+    deviceName: deviceName,
+    defaultWorker: defaultWorker,
+    pairingCode: pairingCode
+  };
+
+  saveButton.disabled = true;
+  saveButton.textContent = '儲存中…';
+  messageArea.textContent = '';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      saveButton.disabled = false;
+      saveButton.textContent = '儲存並進入';
+
+      activateDevice(result);
+      showToast(
+        '已切換至「' + result.stationName + '」；設備連接碼：' + result.pairingCode
+      );
+    })
+    .withFailureHandler(function(error) {
+      messageArea.textContent =
+        '儲存失敗：' + (error.message || error);
+
+      saveButton.disabled = false;
+      saveButton.textContent = '儲存並進入';
+    })
+    .registerDeviceFromWeb(deviceData);
+}
+
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.station-search')) {
+    hideStationSuggestions();
+  }
+});
+
+initializeBirthDateSelectors();
+loadStationDirectory();
+initializeDeviceRecognition();
+  </script>
+  <?!= include('GameModules'); ?>
+</body>
+</html>
