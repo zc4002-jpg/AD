@@ -353,8 +353,10 @@
       transition: width .25s;
     }
 
+    .required-mark { display:inline-block; margin-left:4px; color:#c43d32; font-size:1.05em; font-weight:900; }
+    .question-list { display:grid; gap:14px; }
     .question-card {
-      padding: clamp(20px, 4vw, 30px);
+      padding: clamp(18px, 3vw, 26px);
       border: 1px solid var(--border);
       border-radius: 17px;
       background: white;
@@ -379,12 +381,11 @@
       line-height: 1.7;
     }
 
-    .answer-grid {
-      margin: 21px 0 14px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+    .answer-grid { margin:17px 0 12px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .question-card .question-title { margin:8px 0; font-size:clamp(19px,3vw,25px); line-height:1.45; }
+    .question-card .question-hint { min-height:0; margin:8px 0; }
+    .question-card textarea { margin-top:7px; }
+    @media(max-width:560px){ .answer-grid{grid-template-columns:1fr;} }
 
     .answer-button {
       min-height: 68px;
@@ -405,6 +406,17 @@
       color: #9a5439;
       border-color: #d18462;
       background: #f8e5da;
+    }
+
+    .answer-button.pending.selected {
+      color: #735b9b;
+      border-color: #9a83c5;
+      background: #eee8f8;
+    }
+
+    .answer-button:focus-visible {
+      outline: 3px solid #547eaf;
+      outline-offset: 3px;
     }
 
     .score-grid {
@@ -1896,15 +1908,9 @@ textarea {
           </label>
 
           <label>
-            年齡
-            <input
-              name="age"
-              type="number"
-              min="55"
-              max="120"
-              inputmode="numeric"
-              placeholder="未填出生日期時必填"
-            >
+            年齡（系統自動計算）
+            <input id="agePreview" type="text" value="生日不詳" readonly aria-readonly="true">
+            <small>提供完整出生日期後自動計算；不提供生日也可以建立個案。</small>
           </label>
 
           <label>
@@ -2094,77 +2100,17 @@ textarea {
 </section>
 
     <section id="assessmentView" class="panel hidden">
+      <span class="eyebrow">SPMSQ ASSESSMENT</span>
+      <h2>SPMSQ服務觀察</h2>
+      <p class="lead">請完成以下10題。每題都要選擇一項判定；無法核對時請選「暫無法核對」，不要推測答案。</p>
       <div class="progress-row">
-        <strong id="progressText">1／10</strong>
-
-        <div class="progress">
-          <span id="progressBar"></span>
-        </div>
+        <strong id="progressText">已完成 0／10 題</strong>
+        <div class="progress" role="progressbar" aria-label="SPMSQ作答進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><span id="progressBar" style="width:0%"></span></div>
       </div>
-
-      <div class="question-card">
-        <span
-          id="questionNumber"
-          class="question-number"
-        ></span>
-
-        <h3 id="questionTitle"></h3>
-
-        <p
-          id="questionHint"
-          class="question-hint"
-        ></p>
-
-        <div class="answer-grid">
-          <button
-            id="correctButton"
-            class="answer-button correct"
-            type="button"
-            onclick="selectAnswer(true)"
-          >
-            ✓ 回答正確
-          </button>
-
-          <button
-            id="incorrectButton"
-            class="answer-button incorrect"
-            type="button"
-            onclick="selectAnswer(false)"
-          >
-            × 錯誤或拒答
-          </button>
-        </div>
-
-        <label>
-          本題補充觀察（選填）
-          <textarea
-            id="questionNote"
-            rows="2"
-            placeholder="例如：因聽力不佳，工作人員重述一次題目。"
-            oninput="saveCurrentNote()"
-          ></textarea>
-        </label>
-      </div>
-
+      <div id="questionList" class="question-list"></div>
       <div class="actions">
-        <button
-          id="previousButton"
-          class="secondary"
-          type="button"
-          onclick="previousQuestion()"
-        >
-          上一題
-        </button>
-
-        <button
-          id="nextButton"
-          class="primary"
-          type="button"
-          onclick="nextQuestion()"
-          disabled
-        >
-          下一題
-        </button>
+        <button class="secondary" type="button" onclick="goHome()">取消評估</button>
+        <button id="submitAssessmentButton" class="primary" type="button">完成並送出</button>
       </div>
     </section>
 
@@ -2268,7 +2214,7 @@ textarea {
       若是同一設備的另一個瀏覽器，可輸入相同的六位數連接碼。
     </p>
 
-    <label for="deviceStationInput">本次使用站別</label>
+    <label for="deviceStationInput">本次使用站別（新增設備必填）</label>
     <div class="station-search">
       <input
         id="deviceStationInput"
@@ -2285,7 +2231,7 @@ textarea {
       ></div>
     </div>
 
-    <label for="deviceNameInput">設備名稱</label>
+    <label for="deviceNameInput">設備名稱（新增設備必填）</label>
     <input
       id="deviceNameInput"
       type="text"
@@ -2293,7 +2239,7 @@ textarea {
       autocomplete="off"
     >
 
-    <label for="deviceWorkerInput">預設帶領人員</label>
+    <label for="deviceWorkerInput">預設帶領人員（新增設備必填）</label>
     <input
       id="deviceWorkerInput"
       type="text"
@@ -2302,7 +2248,7 @@ textarea {
       autocomplete="name"
     >
 
-    <label for="devicePairingCodeInput">設備連接碼</label>
+    <label for="devicePairingCodeInput">設備連接碼（連接既有設備時必填；新增設備可留空）</label>
     <input
       id="devicePairingCodeInput"
       type="text"
@@ -2390,7 +2336,7 @@ textarea {
       此功能只調整平台上的服務狀態，不取代機構正式結案摘要、審核或核備程序。
     </p>
 
-    <label for="serviceStatusReason">變更原因（必填）</label>
+    <label for="serviceStatusReason">變更原因</label>
     <textarea
       id="serviceStatusReason"
       rows="4"
@@ -2420,6 +2366,33 @@ textarea {
 </div>
 
   <script>
+    function applyRequiredFieldMarkers() {
+      const makeMark=()=>{const s=document.createElement('span');s.className='required-mark';s.setAttribute('aria-label','必填');s.textContent='*';return s;};
+      document.querySelectorAll('input[required],select[required],textarea[required]').forEach(control=>{
+        if(control.type==='radio'||control.type==='checkbox'){
+          const fs=control.closest('fieldset');const legend=fs&&fs.querySelector('legend');
+          if(legend&&!legend.querySelector('.required-mark'))legend.appendChild(makeMark());
+          return;
+        }
+        let label=control.closest('label');
+        if(!label&&control.id)label=document.querySelector('label[for="'+control.id+'"]');
+        if(label&&!label.querySelector('.required-mark')) {
+          const mark=makeMark();
+          if(control.parentNode===label) label.insertBefore(mark,control);
+          else label.appendChild(mark);
+        }
+      });
+    }
+    function applyConditionalRequiredMarkers() {
+      ['deviceStationInput','deviceNameInput','deviceWorkerInput','serviceStatusReason','clientSelect','activityClientSelect'].forEach(id=>{
+        const control=document.getElementById(id);
+        const label=document.querySelector('label[for="'+id+'"]') || (control && control.closest('label'));
+        if(label&&!label.querySelector('.required-mark')){
+          const s=document.createElement('span');s.className='required-mark';s.setAttribute('aria-label','依情境必填');s.textContent='*';label.appendChild(s);
+        }
+      });
+    }
+
     const questions = [
       {
         title: '請個案說出今天的完整日期',
@@ -2462,6 +2435,9 @@ textarea {
         hint: '期間如有出現任何錯誤，或無法繼續進行，即算錯誤。'
       }
     ];
+
+applyRequiredFieldMarkers();
+applyConditionalRequiredMarkers();
 
 const state = {
   clients: [],
@@ -2869,7 +2845,7 @@ function filterHistoryClientOptions(preferredClientId) {
     option.value = client.id;
     option.textContent = [
       client.name,
-      client.age + '歲',
+      (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲'),
       client.difficulty || '待評估'
     ].join('｜');
     select.appendChild(option);
@@ -2919,7 +2895,7 @@ function renderClientGameRecords(result) {
   state.historyClient = client;
   document.getElementById('clientRecordName').textContent = client.name || '';
   document.getElementById('clientRecordDetails').textContent =
-    (client.age || '—') + '歲｜目前難度：' +
+    (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲') + '｜目前難度：' +
     (client.difficulty || '待評估') + '｜主要帶領者：' +
     (client.worker || '未設定');
 
@@ -3139,6 +3115,7 @@ function goHome() {
 
       if (!year || !month) {
         daySelect.disabled = true;
+        syncAgeFromBirthDate();
         return;
       }
 
@@ -3182,11 +3159,14 @@ function goHome() {
       const month = Number(document.getElementById('birthMonth').value);
       const day = Number(document.getElementById('birthDay').value);
 
-      if (!year || !month || !day) return;
+      const agePreview = document.getElementById('agePreview');
+      if (!year || !month || !day) {
+        agePreview.value = '生日不詳';
+        return;
+      }
 
-      document.querySelector(
-        '#newClientForm [name="age"]'
-      ).value = calculateAgeFromBirthParts(year, month, day);
+      const age = calculateAgeFromBirthParts(year, month, day);
+      agePreview.value = age >= 0 ? age + ' 歲' : '出生日期不正確';
     }
 
 
@@ -3218,7 +3198,7 @@ function goHome() {
 
           option.textContent = [
             client.name,
-            client.age + '歲',
+            (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲'),
             client.difficulty || '待評估'
           ].join('｜');
 
@@ -3312,7 +3292,7 @@ function previewSelectedClient() {
   const name = document.createElement('strong');
 
   name.textContent =
-    client.name + '｜' + client.age + '歲';
+    client.name + '｜' + (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲');
 
   const details = document.createElement('span');
 
@@ -3389,14 +3369,18 @@ function renderClientHistory(result) {
     const date = document.createElement('div');
     date.className = 'history-date';
     date.textContent =
-      item.date + '｜' + (item.assessor || '未填評估者');
+      item.date + '｜' + (item.assessor || '未填評估者') +
+      (item.assessmentAge === null || item.assessmentAge === undefined
+        ? '｜評估時年齡不詳'
+        : '｜評估時 ' + item.assessmentAge + ' 歲');
 
     const resultBox = document.createElement('div');
     resultBox.className = 'history-result';
 
     const score = document.createElement('strong');
-    score.textContent =
-      '錯誤 ' + item.rawErrors + '／10';
+    score.textContent = item.status === '待確認'
+      ? '待確認（未計分）'
+      : '錯誤 ' + item.rawErrors + '／10';
 
     const details = document.createElement('span');
     details.textContent = item.band;
@@ -3476,17 +3460,8 @@ function renderClientHistory(result) {
         delete data.birthMonth;
         delete data.birthDay;
 
-        if (!data.birthDate && !data.age) {
-          showToast('請填寫出生日期或年齡。');
-          return;
-        }
-
-        const enteredAge = Number(data.age || 0);
-
-        if (enteredAge && (enteredAge < 55 || enteredAge > 120)) {
-          showToast('年齡限55至120歲。');
-          return;
-        }
+        // 年齡不再由工作人員輸入；後端僅依出生日期計算，生日不詳可正常建檔。
+        delete data.age;
 
         setLoading(true, '正在建立個案……');
 
@@ -3506,6 +3481,13 @@ function renderClientHistory(result) {
       state.answers = Array(10).fill(null);
       state.notes = Array(10).fill('');
       state.result = null;
+
+      // 每次開始新個案或舊個案 SPMSQ 前，清除上次送出留下的停用狀態。
+      const submitButton = document.getElementById('submitAssessmentButton');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = '完成並送出';
+      }
     }
 
     function beginAssessment(client) {
@@ -3516,97 +3498,92 @@ function renderClientHistory(result) {
     }
 
     function renderQuestion() {
-      const question = questions[state.index];
-      const answer = state.answers[state.index];
-
-      document.getElementById('progressText').textContent =
-        (state.index + 1) + '／10';
-
-      document.getElementById('progressBar').style.width =
-        ((state.index + 1) * 10) + '%';
-
-      document.getElementById('questionNumber').textContent =
-        'QUESTION ' +
-        String(state.index + 1).padStart(2, '0');
-
-      document.getElementById('questionTitle').textContent =
-        question.title;
-
-      document.getElementById('questionHint').textContent =
-        question.hint;
-
-      document.getElementById('questionNote').value =
-        state.notes[state.index] || '';
-
-      document
-        .getElementById('correctButton')
-        .classList.toggle('selected', answer === true);
-
-      document
-        .getElementById('incorrectButton')
-        .classList.toggle('selected', answer === false);
-
-      document.getElementById('previousButton').textContent =
-        state.index === 0 ? '取消' : '上一題';
-
-      document.getElementById('nextButton').textContent =
-        state.index === 9
-          ? '完成並計分'
-          : '下一題';
-
-      document.getElementById('nextButton').disabled =
-        answer === null;
+      const list = document.getElementById('questionList');
+      list.innerHTML = '';
+      questions.forEach((question, index) => {
+        const answer = state.answers[index];
+        const card = document.createElement('article');
+        card.className = 'question-card';
+        card.id = 'spmsqQuestion' + (index + 1);
+        const number = document.createElement('span');
+        number.className = 'question-number';
+        number.textContent = 'QUESTION ' + String(index + 1).padStart(2, '0');
+        const title = document.createElement('h3');
+        title.className = 'question-title';
+        title.textContent = question.title;
+        const mark = document.createElement('span');
+        mark.className = 'required-mark';
+        mark.setAttribute('aria-label', '必填');
+        mark.textContent = '*';
+        title.appendChild(mark);
+        const hint = document.createElement('p');
+        hint.className = 'question-hint';
+        const noBirth = [4,5].includes(index) && !state.client.hasBirthDate;
+        hint.textContent = question.hint + (noBirth ? ' 個案未留存出生日期：請依可查證資料核對；無法核對時選「暫無法核對」，不要推測判定。' : '');
+        const answers = document.createElement('div');
+        answers.className = 'answer-grid';
+        [
+          {value:true,text:'✓ 回答正確',cls:'correct'},
+          {value:false,text:'× 錯誤或拒答',cls:'incorrect'},
+          {value:'待確認',text:'? 暫無法核對',cls:'pending'}
+        ].forEach(option => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'answer-button ' + option.cls;
+          button.textContent = option.text;
+          button.setAttribute('aria-pressed',String(answer === option.value));
+          if(answer === option.value) button.classList.add('selected');
+          button.addEventListener('click',()=>selectAnswer(index,option.value));
+          answers.appendChild(button);
+        });
+        const noteLabel = document.createElement('label');
+        noteLabel.textContent = '本題補充觀察（選填）';
+        const note = document.createElement('textarea');
+        note.rows = 2;
+        note.placeholder = '例如：因聽力不佳，工作人員重述一次題目。';
+        note.value = state.notes[index] || '';
+        note.addEventListener('input',()=>{state.notes[index]=note.value;});
+        noteLabel.appendChild(note);
+        card.append(number,title,hint,answers,noteLabel);
+        list.appendChild(card);
+      });
+      const done = state.answers.filter(a=>a!==null).length;
+      document.getElementById('progressText').textContent = '已完成 ' + done + '／10 題';
+      document.getElementById('progressBar').style.width = (done*10)+'%';
+      document.querySelector('#assessmentView .progress[role="progressbar"]').setAttribute('aria-valuenow',String(done));
     }
 
-    function selectAnswer(value) {
-      state.answers[state.index] = value;
+    function selectAnswer(index,value) {
+      state.answers[index] = value;
       renderQuestion();
-    }
-
-    function saveCurrentNote() {
-      state.notes[state.index] =
-        document.getElementById('questionNote').value;
-    }
-
-    function previousQuestion() {
-      saveCurrentNote();
-
-      if (state.index === 0) {
-        goHome();
-        return;
-      }
-
-      state.index--;
-      renderQuestion();
-    }
-
-    function nextQuestion() {
-      saveCurrentNote();
-
-      if (state.answers[state.index] === null) {
-        showToast('請先判定本題正確或錯誤。');
-        return;
-      }
-
-      if (state.index < 9) {
-        state.index++;
-        renderQuestion();
-        return;
-      }
-
-      submitAssessment();
     }
 
     function submitAssessment() {
+      const firstMissing = state.answers.findIndex(a=>a===null);
+      if(firstMissing!==-1) {
+        showToast('尚有題目未完成，請逐題確認並選擇判定。');
+        const target=document.getElementById('spmsqQuestion'+(firstMissing+1));
+        if(target) target.scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
+      document.getElementById('submitAssessmentButton').disabled = true;
       setLoading(true, '正在計算SPMSQ結果……');
 
       google.script.run
         .withSuccessHandler(result => {
           setLoading(false);
+          if (result.pending) {
+            showToast('已保存待確認紀錄；本次不計算分數，請核對資料後再補判。');
+            goHome();
+            return;
+          }
           state.result = result;
           renderResult();
         })
-        .withFailureHandler(handleFailure)
+        .withFailureHandler(error => {
+          document.getElementById('submitAssessmentButton').disabled = false;
+          handleFailure(error);
+        })
         .saveSpmsqFromWeb({
           clientId: state.client.id,
           assessor:
@@ -3766,7 +3743,7 @@ if (!client) {
   const name = document.createElement('strong');
 
   name.textContent =
-    client.name + '｜' + client.age + '歲';
+    client.name + '｜' + (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲');
 
   const details = document.createElement('span');
 
@@ -4347,6 +4324,23 @@ document.addEventListener('click', function(event) {
     hideStationSuggestions();
   }
 });
+
+// SPMSQ送出按鈕改用明確事件綁定，避免依賴HTML inline onclick。
+const assessmentSubmitButton = document.getElementById('submitAssessmentButton');
+if (assessmentSubmitButton) {
+  assessmentSubmitButton.addEventListener('click', function(event) {
+    event.preventDefault();
+    try {
+      submitAssessment();
+    } catch (error) {
+      console.error('SPMSQ送出時發生錯誤：', error);
+      setLoading(false);
+      showToast('送出時發生程式錯誤，請通知平台管理人員。');
+      const button = document.getElementById('submitAssessmentButton');
+      if (button) button.disabled = false;
+    }
+  });
+}
 
 initializeBirthDateSelectors();
 loadStationDirectory();

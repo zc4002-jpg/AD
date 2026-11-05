@@ -102,7 +102,8 @@ function setupDatabase() {
   for (let column = 5; column <= 14; column++) {
     setDropdown('SPMSQ評估', column, [
       '正確',
-      '錯誤／拒答'
+      '錯誤／拒答',
+      '待確認'
     ]);
   }
 
@@ -1291,7 +1292,8 @@ function refreshValidations() {
   for (let column = 5; column <= 14; column++) {
     setDropdown('SPMSQ評估', column, [
       '正確',
-      '錯誤／拒答'
+      '錯誤／拒答',
+      '待確認'
     ]);
   }
 
@@ -1622,6 +1624,8 @@ function setupSpmsqScoring() {
     .getActiveSpreadsheet()
     .getSheetByName('SPMSQ評估');
 
+  ensureAssessmentAgeColumn_();
+
   // 新增遊戲建議說明欄
   sheet.getRange('V1').copyTo(
     sheet.getRange('W1'),
@@ -1745,7 +1749,8 @@ function calculateSpmsqRow(row, showAlert) {
 
   const validAnswers = [
     '正確',
-    '錯誤／拒答'
+    '錯誤／拒答',
+    '待確認'
   ];
 
   const isComplete = answers.every(answer =>
@@ -1756,12 +1761,22 @@ function calculateSpmsqRow(row, showAlert) {
     if (showAlert) {
       SpreadsheetApp.getUi().alert(
         '尚未完成',
-        '請確認Q1至Q10都已選擇「正確」或「錯誤／拒答」。',
+        '請確認Q1至Q10均已選擇判定結果。',
         SpreadsheetApp.getUi().ButtonSet.OK
       );
     }
     return;
   }
+
+  if (answers.includes('待確認')) {
+    // 待確認資料不得保留先前計分、難度建議或遊戲建議說明。
+    sheet.getRange(row, 15, 1, 6).clearContent();
+    sheet.getRange(row, 23).clearContent();
+    sheet.getRange(row, 25).setValue('待確認');
+    return;
+  }
+
+  sheet.getRange(row, 25).setValue('已完成');
 
   const clientRow = findClientRow(clientId);
 
@@ -2062,7 +2077,8 @@ function getClientOptions(deviceId, stationName) {
       id: String(row[0]),
       code: String(row[1] || ''),
       name: String(row[2] || ''),
-      age: Number(row[4] || 0),
+      age: row[3] instanceof Date && !isNaN(row[3].getTime()) ? calculateAge(row[3]) : null,
+      hasBirthDate: row[3] instanceof Date && !isNaN(row[3].getTime()),
       education: String(row[5] || ''),
       worker: String(row[6] || ''),
       note: String(row[7] || ''),
@@ -2104,7 +2120,7 @@ function getClientRecordOptions(deviceId, stationName) {
     .map(row => ({
       id: String(row[0] || ''),
       name: String(row[2] || ''),
-      age: Number(row[4] || 0),
+      age: row[3] instanceof Date && !isNaN(row[3].getTime()) ? calculateAge(row[3]) : null,
       worker: String(row[6] || ''),
       status: String(row[9] || '服務中'),
       difficulty: String(row[10] || '待評估'),
@@ -2432,22 +2448,22 @@ function createClientFromWeb(form) {
     let birthDate = '';
 
     if (birthDateText) {
-      birthDate = new Date(
-        birthDateText + 'T12:00:00'
-      );
-
-      if (isNaN(birthDate.getTime())) {
+      const parts = birthDateText.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(value => !Number.isInteger(value) || value <= 0)) {
         throw new Error('出生日期格式不正確。');
+      }
+      birthDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+      if (birthDate.getFullYear() !== parts[0] || birthDate.getMonth() !== parts[1] - 1 || birthDate.getDate() !== parts[2]) {
+        throw new Error('出生日期不是有效日期，請重新確認。');
+      }
+      const calculatedAge = calculateAge(birthDate);
+      if (!Number.isInteger(calculatedAge) || calculatedAge < 55 || calculatedAge > 120) {
+        throw new Error('出生日期計算年齡須為55至120歲，請確認日期。');
       }
     }
 
-    const age = birthDate
-      ? calculateAge(birthDate)
-      : Number(form.age || 0);
-
-    if (!Number.isInteger(age) || age < 55 || age > 120) {
-      throw new Error('年齡限55至120歲，請確認年齡或出生日期。');
-    }
+    // 年齡不接受手動輸入；未提供生日時留白。
+    const age = birthDate ? calculateAge(birthDate) : '';
 
     const clientId = createId('C');
     const clientCode = createCaseCode();
@@ -2486,7 +2502,8 @@ function createClientFromWeb(form) {
         id: clientId,
         code: clientCode,
         name: name,
-        age: age,
+        age: age === '' ? null : age,
+        hasBirthDate: !!birthDate,
         education: education,
         worker: worker || '未指定',
         difficulty: '待評估',
@@ -2535,9 +2552,9 @@ function saveSpmsqFromWeb(data) {
     }
 
     const answers = data.answers.map(answer =>
-      answer === true || answer === '正確'
-        ? '正確'
-        : '錯誤／拒答'
+      answer === '待確認'
+        ? '待確認'
+        : (answer === true || answer === '正確' ? '正確' : '錯誤／拒答')
     );
 
     const questionNotes = Array.isArray(data.questionNotes)
@@ -2564,10 +2581,19 @@ function saveSpmsqFromWeb(data) {
       .getActiveSpreadsheet()
       .getSheetByName('SPMSQ評估');
 
+    const assessmentDate = new Date();
+    const clientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('個案資料');
+    const birthDateValue = clientSheet.getRange(clientRow, 4).getValue();
+    const assessmentAge = birthDateValue instanceof Date && !isNaN(birthDateValue.getTime())
+      ? calculateAgeAtDate(birthDateValue, assessmentDate)
+      : '';
+
+    ensureAssessmentAgeColumn_();
+
     assessmentSheet.appendRow([
       createId('S'),
       clientId,
-      new Date(),
+      assessmentDate,
       assessor,
       ...answers,
       '',
@@ -2582,17 +2608,20 @@ function saveSpmsqFromWeb(data) {
     ]);
 
     const newRow = assessmentSheet.getLastRow();
+    assessmentSheet.getRange(newRow, 24).setValue(assessmentAge);
 
     calculateSpmsqRow(newRow, false);
 
     const result = assessmentSheet
       .getRange(newRow, 15, 1, 9)
       .getDisplayValues()[0];
+    const assessmentStatus = assessmentSheet.getRange(newRow, 25).getDisplayValue();
 
     SpreadsheetApp.flush();
 
     return {
       success: true,
+      pending: assessmentStatus === '待確認',
       assessmentId:
         assessmentSheet.getRange(newRow, 1)
           .getDisplayValue(),
@@ -2642,7 +2671,11 @@ function updateClientDifficulty(clientId, level) {
 }
 
 function calculateAge(birthDate) {
-  const today = new Date();
+  return calculateAgeAtDate(birthDate, new Date());
+}
+
+function calculateAgeAtDate(birthDate, referenceDate) {
+  const today = new Date(referenceDate);
 
   let age =
     today.getFullYear() -
@@ -2663,6 +2696,35 @@ function calculateAge(birthDate) {
   }
 
   return age;
+}
+
+function ensureAssessmentAgeColumn_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('SPMSQ評估');
+  if (!sheet) throw new Error('找不到「SPMSQ評估」工作表。');
+  if (sheet.getMaxColumns() < 25) {
+    sheet.insertColumnsAfter(sheet.getMaxColumns(), 25 - sheet.getMaxColumns());
+  }
+  if (sheet.getRange(1, 24).getDisplayValue() !== '評估時年齡') {
+    sheet.getRange(1, 24).setValue('評估時年齡');
+    sheet.getRange(1, 24)
+      .setBackground('#2e6856')
+      .setFontColor('#ffffff')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle')
+      .setWrap(true);
+  }
+  if (sheet.getRange(1, 25).getDisplayValue() !== '評估狀態') {
+    sheet.getRange(1, 25).setValue('評估狀態');
+    sheet.getRange(1, 25)
+      .setBackground('#2e6856')
+      .setFontColor('#ffffff')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle')
+      .setWrap(true);
+  }
+  sheet.getRange('X2:X').setNumberFormat('0');
 }
 
 function createCaseCode() {
@@ -2728,6 +2790,8 @@ function getClientHistory(clientId) {
     .getActiveSpreadsheet()
     .getSheetByName('SPMSQ評估');
 
+  ensureAssessmentAgeColumn_();
+
   if (sheet.getLastRow() < 2) {
     return {
       history: [],
@@ -2738,33 +2802,35 @@ function getClientHistory(clientId) {
   }
 
   const rows = sheet
-    .getRange(
-      2,
-      1,
-      sheet.getLastRow() - 1,
-      23
-    )
+    .getRange(2, 1, sheet.getLastRow() - 1, 25)
     .getValues()
-    .filter(row =>
-      String(row[1]) === cleanClientId
-    )
+    .filter(row => String(row[1]) === cleanClientId)
     .sort((a, b) =>
-      new Date(b[2]).getTime() -
-      new Date(a[2]).getTime()
+      new Date(b[2]).getTime() - new Date(a[2]).getTime()
     );
 
-  const history = rows.map(row => ({
-    assessmentId: String(row[0] || ''),
-    date: formatDateForWeb(row[2]),
-    assessor: String(row[3] || ''),
-    rawErrors: Number(row[14] || 0),
-    scoringErrors: Number(row[14] || 0),
-    band: String(row[17] || ''),
-    recommendedLevel: String(row[18] || ''),
-    workerDecision: String(row[19] || ''),
-    note: String(row[20] || ''),
-    recommendation: String(row[22] || '')
-  }));
+  const history = rows.map(row => {
+    const status = String(row[24] || '已完成');
+    const isPending = status === '待確認';
+
+    return {
+      assessmentId: String(row[0] || ''),
+      date: formatDateForWeb(row[2]),
+      assessmentAge:
+        row[23] === '' || row[23] === null || row[23] === undefined
+          ? null
+          : Number(row[23]),
+      status: status,
+      assessor: String(row[3] || ''),
+      rawErrors: isPending ? null : Number(row[14] || 0),
+      scoringErrors: isPending ? null : Number(row[16] || 0),
+      band: isPending ? '' : String(row[17] || ''),
+      recommendedLevel: isPending ? '' : String(row[18] || ''),
+      workerDecision: String(row[19] || ''),
+      note: String(row[20] || ''),
+      recommendation: isPending ? '' : String(row[22] || '')
+    };
+  });
 
   if (history.length === 0) {
     return {
@@ -2775,38 +2841,45 @@ function getClientHistory(clientId) {
     };
   }
 
-  if (history.length === 1) {
+  // 待確認紀錄保留在歷史列表，但不得當成0分納入前後次比較。
+  const completedHistory = history.filter(item => item.status !== '待確認');
+
+  if (completedHistory.length === 0) {
     return {
       history: history,
-      summary:
-        '目前只有一次評估，尚不足以形成變化趨勢。',
+      summary: '目前評估紀錄均為待確認，尚無可比較的已完成評估。',
       difference: 0,
       difficultyChange: ''
     };
   }
 
-  const latest = history[0];
-  const previous = history[1];
+  if (completedHistory.length === 1) {
+    return {
+      history: history,
+      summary: '目前只有一次已完成評估，尚不足以形成變化趨勢。',
+      difference: 0,
+      difficultyChange: ''
+    };
+  }
 
-  const difference =
-    latest.rawErrors -
-    previous.rawErrors;
+  const latest = completedHistory[0];
+  const previous = completedHistory[1];
+  const difference = latest.rawErrors - previous.rawErrors;
 
   let summary = '';
 
   if (difference > 0) {
     summary =
-      '錯誤數較前次增加 ' +
+      '錯誤數較前次已完成評估增加 ' +
       difference +
       ' 題。建議先確認當日精神、情緒、聽力及環境因素，並持續觀察；如變化持續，請依機構流程處理。';
   } else if (difference < 0) {
     summary =
-      '錯誤數較前次減少 ' +
+      '錯誤數較前次已完成評估減少 ' +
       Math.abs(difference) +
       ' 題。可維持目前活動方式，仍應搭配現場觀察綜合判讀。';
   } else {
-    summary =
-      '錯誤數與前次相同，近期結果大致穩定。';
+    summary = '錯誤數與前次已完成評估相同，近期結果大致穩定。';
   }
 
   let difficultyChange = '';
@@ -2823,10 +2896,7 @@ function getClientHistory(clientId) {
       latest.workerDecision +
       '」。';
   } else if (latest.workerDecision) {
-    difficultyChange =
-      '目前維持「' +
-      latest.workerDecision +
-      '」難度。';
+    difficultyChange = '目前維持「' + latest.workerDecision + '」難度。';
   }
 
   return {
@@ -2836,7 +2906,6 @@ function getClientHistory(clientId) {
     difficultyChange: difficultyChange
   };
 }
-
 function testClientHistoryBackend() {
   const sheet = SpreadsheetApp
     .getActiveSpreadsheet()
