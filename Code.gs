@@ -2064,7 +2064,8 @@ function getClientOptions(deviceId, stationName) {
       id: String(row[0]),
       code: String(row[1] || ''),
       name: String(row[2] || ''),
-      age: Number(row[4] || 0),
+      age: row[3] instanceof Date && !isNaN(row[3].getTime()) ? calculateAge(row[3]) : null,
+      hasBirthDate: row[3] instanceof Date && !isNaN(row[3].getTime()),
       education: String(row[5] || ''),
       worker: String(row[6] || ''),
       note: String(row[7] || ''),
@@ -2106,7 +2107,7 @@ function getClientRecordOptions(deviceId, stationName) {
     .map(row => ({
       id: String(row[0] || ''),
       name: String(row[2] || ''),
-      age: Number(row[4] || 0),
+      age: row[3] instanceof Date && !isNaN(row[3].getTime()) ? calculateAge(row[3]) : null,
       worker: String(row[6] || ''),
       status: String(row[9] || '服務中'),
       difficulty: String(row[10] || '待評估'),
@@ -2434,22 +2435,22 @@ function createClientFromWeb(form) {
     let birthDate = '';
 
     if (birthDateText) {
-      birthDate = new Date(
-        birthDateText + 'T12:00:00'
-      );
-
-      if (isNaN(birthDate.getTime())) {
+      const parts = birthDateText.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(value => !Number.isInteger(value) || value <= 0)) {
         throw new Error('出生日期格式不正確。');
+      }
+      birthDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+      if (birthDate.getFullYear() !== parts[0] || birthDate.getMonth() !== parts[1] - 1 || birthDate.getDate() !== parts[2]) {
+        throw new Error('出生日期不是有效日期，請重新確認。');
+      }
+      const calculatedAge = calculateAge(birthDate);
+      if (!Number.isInteger(calculatedAge) || calculatedAge < 55 || calculatedAge > 120) {
+        throw new Error('出生日期計算年齡須為55至120歲，請確認日期。');
       }
     }
 
-    const age = birthDate
-      ? calculateAge(birthDate)
-      : Number(form.age || 0);
-
-    if (!Number.isInteger(age) || age < 55 || age > 120) {
-      throw new Error('年齡限55至120歲，請確認年齡或出生日期。');
-    }
+    // 年齡不接受手動輸入；未提供生日時留白。
+    const age = birthDate ? calculateAge(birthDate) : '';
 
     const clientId = createId('C');
     const clientCode = createCaseCode();
@@ -2488,7 +2489,7 @@ function createClientFromWeb(form) {
         id: clientId,
         code: clientCode,
         name: name,
-        age: age,
+        age: age === '' ? null : age,
         education: education,
         worker: worker || '未指定',
         difficulty: '待評估',
@@ -2566,10 +2567,19 @@ function saveSpmsqFromWeb(data) {
       .getActiveSpreadsheet()
       .getSheetByName('SPMSQ評估');
 
+    const assessmentDate = new Date();
+    const clientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('個案資料');
+    const birthDateValue = clientSheet.getRange(clientRow, 4).getValue();
+    const assessmentAge = birthDateValue instanceof Date && !isNaN(birthDateValue.getTime())
+      ? calculateAgeAtDate(birthDateValue, assessmentDate)
+      : '';
+
+    ensureAssessmentAgeColumn_();
+
     assessmentSheet.appendRow([
       createId('S'),
       clientId,
-      new Date(),
+      assessmentDate,
       assessor,
       ...answers,
       '',
@@ -2584,6 +2594,7 @@ function saveSpmsqFromWeb(data) {
     ]);
 
     const newRow = assessmentSheet.getLastRow();
+    assessmentSheet.getRange(newRow, 24).setValue(assessmentAge);
 
     calculateSpmsqRow(newRow, false);
 
@@ -2644,7 +2655,11 @@ function updateClientDifficulty(clientId, level) {
 }
 
 function calculateAge(birthDate) {
-  const today = new Date();
+  return calculateAgeAtDate(birthDate, new Date());
+}
+
+function calculateAgeAtDate(birthDate, referenceDate) {
+  const today = new Date(referenceDate);
 
   let age =
     today.getFullYear() -
@@ -2665,6 +2680,25 @@ function calculateAge(birthDate) {
   }
 
   return age;
+}
+
+function ensureAssessmentAgeColumn_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('SPMSQ評估');
+  if (!sheet) throw new Error('找不到「SPMSQ評估」工作表。');
+  if (sheet.getMaxColumns() < 24) {
+    sheet.insertColumnsAfter(sheet.getMaxColumns(), 24 - sheet.getMaxColumns());
+  }
+  if (sheet.getRange(1, 24).getDisplayValue() !== '評估時年齡') {
+    sheet.getRange(1, 24).setValue('評估時年齡');
+    sheet.getRange(1, 24)
+      .setBackground('#2e6856')
+      .setFontColor('#ffffff')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle')
+      .setWrap(true);
+  }
+  sheet.getRange('X2:X').setNumberFormat('0');
 }
 
 function createCaseCode() {
@@ -2746,7 +2780,7 @@ function getClientHistory(clientId) {
       2,
       1,
       sheet.getLastRow() - 1,
-      23
+      24
     )
     .getValues()
     .filter(row =>
@@ -2760,6 +2794,7 @@ function getClientHistory(clientId) {
   const history = rows.map(row => ({
     assessmentId: String(row[0] || ''),
     date: formatDateForWeb(row[2]),
+    assessmentAge: row[23] === '' || row[23] === null || row[23] === undefined ? null : Number(row[23]),
     assessor: String(row[3] || ''),
     rawErrors: Number(row[14] || 0),
     scoringErrors: Number(row[14] || 0),
