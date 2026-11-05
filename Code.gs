@@ -2699,8 +2699,8 @@ function calculateAgeAtDate(birthDate, referenceDate) {
 function ensureAssessmentAgeColumn_() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('SPMSQ評估');
   if (!sheet) throw new Error('找不到「SPMSQ評估」工作表。');
-  if (sheet.getMaxColumns() < 24) {
-    sheet.insertColumnsAfter(sheet.getMaxColumns(), 24 - sheet.getMaxColumns());
+  if (sheet.getMaxColumns() < 25) {
+    sheet.insertColumnsAfter(sheet.getMaxColumns(), 25 - sheet.getMaxColumns());
   }
   if (sheet.getRange(1, 24).getDisplayValue() !== '評估時年齡') {
     sheet.getRange(1, 24).setValue('評估時年齡');
@@ -2822,7 +2822,7 @@ function getClientHistory(clientId) {
     status: String(row[24] || '已完成'),
     assessor: String(row[3] || ''),
     rawErrors: Number(row[14] || 0),
-    scoringErrors: Number(row[14] || 0),
+    scoringErrors: Number(row[16] || 0),
     band: String(row[17] || ''),
     recommendedLevel: String(row[18] || ''),
     workerDecision: String(row[19] || ''),
