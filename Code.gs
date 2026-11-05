@@ -2801,7 +2801,7 @@ function getClientHistory(clientId) {
       2,
       1,
       sheet.getLastRow() - 1,
-      24
+      25
     )
     .getValues()
     .filter(row =>
