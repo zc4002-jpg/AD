@@ -102,7 +102,8 @@ function setupDatabase() {
   for (let column = 5; column <= 14; column++) {
     setDropdown('SPMSQ評估', column, [
       '正確',
-      '錯誤／拒答'
+      '錯誤／拒答',
+      '待確認'
     ]);
   }
 
@@ -1291,7 +1292,8 @@ function refreshValidations() {
   for (let column = 5; column <= 14; column++) {
     setDropdown('SPMSQ評估', column, [
       '正確',
-      '錯誤／拒答'
+      '錯誤／拒答',
+      '待確認'
     ]);
   }
 
