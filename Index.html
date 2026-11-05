@@ -2365,7 +2365,11 @@ textarea {
         }
         let label=control.closest('label');
         if(!label&&control.id)label=document.querySelector('label[for="'+control.id+'"]');
-        if(label&&!label.querySelector('.required-mark'))label.appendChild(makeMark());
+        if(label&&!label.querySelector('.required-mark')) {
+          const mark=makeMark();
+          if(control.parentNode===label) label.insertBefore(mark,control);
+          else label.appendChild(mark);
+        }
       });
     }
     function applyConditionalRequiredMarkers() {
