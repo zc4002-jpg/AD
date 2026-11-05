@@ -1747,7 +1747,8 @@ function calculateSpmsqRow(row, showAlert) {
 
   const validAnswers = [
     '正確',
-    '錯誤／拒答'
+    '錯誤／拒答',
+    '待確認'
   ];
 
   const isComplete = answers.every(answer =>
@@ -1758,12 +1759,20 @@ function calculateSpmsqRow(row, showAlert) {
     if (showAlert) {
       SpreadsheetApp.getUi().alert(
         '尚未完成',
-        '請確認Q1至Q10都已選擇「正確」或「錯誤／拒答」。',
+        '請確認Q1至Q10均已選擇判定結果。',
         SpreadsheetApp.getUi().ButtonSet.OK
       );
     }
     return;
   }
+
+  if (answers.includes('待確認')) {
+    sheet.getRange(row, 15, 1, 6).clearContent();
+    sheet.getRange(row, 25).setValue('待確認');
+    return;
+  }
+
+  sheet.getRange(row, 25).setValue('已完成');
 
   const clientRow = findClientRow(clientId);
 
@@ -2538,9 +2547,9 @@ function saveSpmsqFromWeb(data) {
     }
 
     const answers = data.answers.map(answer =>
-      answer === true || answer === '正確'
-        ? '正確'
-        : '錯誤／拒答'
+      answer === '待確認'
+        ? '待確認'
+        : (answer === true || answer === '正確' ? '正確' : '錯誤／拒答')
     );
 
     const questionNotes = Array.isArray(data.questionNotes)
@@ -2601,11 +2610,13 @@ function saveSpmsqFromWeb(data) {
     const result = assessmentSheet
       .getRange(newRow, 15, 1, 9)
       .getDisplayValues()[0];
+    const assessmentStatus = assessmentSheet.getRange(newRow, 25).getDisplayValue();
 
     SpreadsheetApp.flush();
 
     return {
       success: true,
+      pending: assessmentStatus === '待確認',
       assessmentId:
         assessmentSheet.getRange(newRow, 1)
           .getDisplayValue(),
@@ -2691,6 +2702,16 @@ function ensureAssessmentAgeColumn_() {
   if (sheet.getRange(1, 24).getDisplayValue() !== '評估時年齡') {
     sheet.getRange(1, 24).setValue('評估時年齡');
     sheet.getRange(1, 24)
+      .setBackground('#2e6856')
+      .setFontColor('#ffffff')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle')
+      .setWrap(true);
+  }
+  if (sheet.getRange(1, 25).getDisplayValue() !== '評估狀態') {
+    sheet.getRange(1, 25).setValue('評估狀態');
+    sheet.getRange(1, 25)
       .setBackground('#2e6856')
       .setFontColor('#ffffff')
       .setFontWeight('bold')
@@ -2795,6 +2816,7 @@ function getClientHistory(clientId) {
     assessmentId: String(row[0] || ''),
     date: formatDateForWeb(row[2]),
     assessmentAge: row[23] === '' || row[23] === null || row[23] === undefined ? null : Number(row[23]),
+    status: String(row[24] || '已完成'),
     assessor: String(row[3] || ''),
     rawErrors: Number(row[14] || 0),
     scoringErrors: Number(row[14] || 0),
