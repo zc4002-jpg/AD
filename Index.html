@@ -2871,7 +2871,7 @@ function filterHistoryClientOptions(preferredClientId) {
     option.value = client.id;
     option.textContent = [
       client.name,
-      client.age + '歲',
+      (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲'),
       client.difficulty || '待評估'
     ].join('｜');
     select.appendChild(option);
@@ -2921,7 +2921,7 @@ function renderClientGameRecords(result) {
   state.historyClient = client;
   document.getElementById('clientRecordName').textContent = client.name || '';
   document.getElementById('clientRecordDetails').textContent =
-    (client.age || '—') + '歲｜目前難度：' +
+    (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲') + '｜目前難度：' +
     (client.difficulty || '待評估') + '｜主要帶領者：' +
     (client.worker || '未設定');
 
@@ -3224,7 +3224,7 @@ function goHome() {
 
           option.textContent = [
             client.name,
-            client.age + '歲',
+            (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲'),
             client.difficulty || '待評估'
           ].join('｜');
 
@@ -3318,7 +3318,7 @@ function previewSelectedClient() {
   const name = document.createElement('strong');
 
   name.textContent =
-    client.name + '｜' + client.age + '歲';
+    client.name + '｜' + (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲');
 
   const details = document.createElement('span');
 
@@ -3779,7 +3779,7 @@ if (!client) {
   const name = document.createElement('strong');
 
   name.textContent =
-    client.name + '｜' + client.age + '歲';
+    client.name + '｜' + (client.age === null || client.age === undefined ? '年齡不詳' : client.age + '歲');
 
   const details = document.createElement('span');
 
