@@ -2127,6 +2127,14 @@ textarea {
           >
             × 錯誤或拒答
           </button>
+        <button
+            id="pendingButton"
+            class="answer-button"
+            type="button"
+            onclick="selectAnswer('待確認')"
+          >
+            ? 暫無法核對
+          </button>
         </div>
 
         <label>
@@ -3396,8 +3404,9 @@ function renderClientHistory(result) {
     resultBox.className = 'history-result';
 
     const score = document.createElement('strong');
-    score.textContent =
-      '錯誤 ' + item.rawErrors + '／10';
+    score.textContent = item.status === '待確認'
+      ? '待確認（未計分）'
+      : '錯誤 ' + item.rawErrors + '／10';
 
     const details = document.createElement('span');
     details.textContent = item.band;
@@ -3524,8 +3533,11 @@ function renderClientHistory(result) {
       document.getElementById('questionTitle').textContent =
         question.title;
 
+      const needsBirthDateCheck = [4, 5].includes(state.index) && !state.client.hasBirthDate;
       document.getElementById('questionHint').textContent =
-        question.hint;
+        question.hint + (needsBirthDateCheck
+          ? ' 個案未留存出生日期：請依可查證資料核對；無法核對時選「暫無法核對」，不要推測判定。'
+          : '');
 
       document.getElementById('questionNote').value =
         state.notes[state.index] || '';
@@ -3537,6 +3549,10 @@ function renderClientHistory(result) {
       document
         .getElementById('incorrectButton')
         .classList.toggle('selected', answer === false);
+
+      document
+        .getElementById('pendingButton')
+        .classList.toggle('selected', answer === '待確認');
 
       document.getElementById('previousButton').textContent =
         state.index === 0 ? '取消' : '上一題';
@@ -3595,6 +3611,11 @@ function renderClientHistory(result) {
       google.script.run
         .withSuccessHandler(result => {
           setLoading(false);
+          if (result.pending) {
+            showToast('已保存待確認紀錄；本次不計算分數，請核對資料後再補判。');
+            goHome();
+            return;
+          }
           state.result = result;
           renderResult();
         })
