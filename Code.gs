@@ -1622,6 +1622,8 @@ function setupSpmsqScoring() {
     .getActiveSpreadsheet()
     .getSheetByName('SPMSQ評估');
 
+  ensureAssessmentAgeColumn_();
+
   // 新增遊戲建議說明欄
   sheet.getRange('V1').copyTo(
     sheet.getRange('W1'),
@@ -2727,6 +2729,8 @@ function getClientHistory(clientId) {
   const sheet = SpreadsheetApp
     .getActiveSpreadsheet()
     .getSheetByName('SPMSQ評估');
+
+  ensureAssessmentAgeColumn_();
 
   if (sheet.getLastRow() < 2) {
     return {
