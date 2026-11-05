@@ -1769,7 +1769,9 @@ function calculateSpmsqRow(row, showAlert) {
   }
 
   if (answers.includes('待確認')) {
+    // 待確認資料不得保留先前計分、難度建議或遊戲建議說明。
     sheet.getRange(row, 15, 1, 6).clearContent();
+    sheet.getRange(row, 23).clearContent();
     sheet.getRange(row, 25).setValue('待確認');
     return;
   }
