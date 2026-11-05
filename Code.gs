@@ -2499,6 +2499,7 @@ function createClientFromWeb(form) {
         code: clientCode,
         name: name,
         age: age === '' ? null : age,
+        hasBirthDate: !!birthDate,
         education: education,
         worker: worker || '未指定',
         difficulty: '待評估',
