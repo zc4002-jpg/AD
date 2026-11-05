@@ -2110,7 +2110,7 @@ textarea {
       <div id="questionList" class="question-list"></div>
       <div class="actions">
         <button class="secondary" type="button" onclick="goHome()">取消評估</button>
-        <button id="submitAssessmentButton" class="primary" type="button" onclick="submitAssessment()">完成並送出</button>
+        <button id="submitAssessmentButton" class="primary" type="button">完成並送出</button>
       </div>
     </section>
 
@@ -4317,6 +4317,23 @@ document.addEventListener('click', function(event) {
     hideStationSuggestions();
   }
 });
+
+// SPMSQ送出按鈕改用明確事件綁定，避免依賴HTML inline onclick。
+const assessmentSubmitButton = document.getElementById('submitAssessmentButton');
+if (assessmentSubmitButton) {
+  assessmentSubmitButton.addEventListener('click', function(event) {
+    event.preventDefault();
+    try {
+      submitAssessment();
+    } catch (error) {
+      console.error('SPMSQ送出時發生錯誤：', error);
+      setLoading(false);
+      showToast('送出時發生程式錯誤，請通知平台管理人員。');
+      const button = document.getElementById('submitAssessmentButton');
+      if (button) button.disabled = false;
+    }
+  });
+}
 
 initializeBirthDateSelectors();
 loadStationDirectory();
