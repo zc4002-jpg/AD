@@ -408,6 +408,17 @@
       background: #f8e5da;
     }
 
+    .answer-button.pending.selected {
+      color: #735b9b;
+      border-color: #9a83c5;
+      background: #eee8f8;
+    }
+
+    .answer-button:focus-visible {
+      outline: 3px solid #547eaf;
+      outline-offset: 3px;
+    }
+
     .score-grid {
       display: grid;
       grid-template-columns: .8fr 1.2fr;
@@ -3507,7 +3518,7 @@ function renderClientHistory(result) {
         [
           {value:true,text:'✓ 回答正確',cls:'correct'},
           {value:false,text:'× 錯誤或拒答',cls:'incorrect'},
-          {value:'待確認',text:'? 暫無法核對',cls:''}
+          {value:'待確認',text:'? 暫無法核對',cls:'pending'}
         ].forEach(option => {
           const button = document.createElement('button');
           button.type = 'button';
