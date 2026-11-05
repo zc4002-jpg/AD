@@ -2374,7 +2374,8 @@ textarea {
     }
     function applyConditionalRequiredMarkers() {
       ['deviceStationInput','deviceNameInput','deviceWorkerInput','serviceStatusReason','clientSelect','activityClientSelect'].forEach(id=>{
-        const label=document.querySelector('label[for="'+id+'"]');
+        const control=document.getElementById(id);
+        const label=document.querySelector('label[for="'+id+'"]') || (control && control.closest('label'));
         if(label&&!label.querySelector('.required-mark')){
           const s=document.createElement('span');s.className='required-mark';s.setAttribute('aria-label','依情境必填');s.textContent='*';label.appendChild(s);
         }
