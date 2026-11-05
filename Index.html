@@ -3481,6 +3481,13 @@ function renderClientHistory(result) {
       state.answers = Array(10).fill(null);
       state.notes = Array(10).fill('');
       state.result = null;
+
+      // 每次開始新個案或舊個案 SPMSQ 前，清除上次送出留下的停用狀態。
+      const submitButton = document.getElementById('submitAssessmentButton');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = '完成並送出';
+      }
     }
 
     function beginAssessment(client) {
