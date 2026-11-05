@@ -2802,35 +2802,35 @@ function getClientHistory(clientId) {
   }
 
   const rows = sheet
-    .getRange(
-      2,
-      1,
-      sheet.getLastRow() - 1,
-      25
-    )
+    .getRange(2, 1, sheet.getLastRow() - 1, 25)
     .getValues()
-    .filter(row =>
-      String(row[1]) === cleanClientId
-    )
+    .filter(row => String(row[1]) === cleanClientId)
     .sort((a, b) =>
-      new Date(b[2]).getTime() -
-      new Date(a[2]).getTime()
+      new Date(b[2]).getTime() - new Date(a[2]).getTime()
     );
 
-  const history = rows.map(row => ({
-    assessmentId: String(row[0] || ''),
-    date: formatDateForWeb(row[2]),
-    assessmentAge: row[23] === '' || row[23] === null || row[23] === undefined ? null : Number(row[23]),
-    status: String(row[24] || '已完成'),
-    assessor: String(row[3] || ''),
-    rawErrors: Number(row[14] || 0),
-    scoringErrors: Number(row[16] || 0),
-    band: String(row[17] || ''),
-    recommendedLevel: String(row[18] || ''),
-    workerDecision: String(row[19] || ''),
-    note: String(row[20] || ''),
-    recommendation: String(row[22] || '')
-  }));
+  const history = rows.map(row => {
+    const status = String(row[24] || '已完成');
+    const isPending = status === '待確認';
+
+    return {
+      assessmentId: String(row[0] || ''),
+      date: formatDateForWeb(row[2]),
+      assessmentAge:
+        row[23] === '' || row[23] === null || row[23] === undefined
+          ? null
+          : Number(row[23]),
+      status: status,
+      assessor: String(row[3] || ''),
+      rawErrors: isPending ? null : Number(row[14] || 0),
+      scoringErrors: isPending ? null : Number(row[16] || 0),
+      band: isPending ? '' : String(row[17] || ''),
+      recommendedLevel: isPending ? '' : String(row[18] || ''),
+      workerDecision: String(row[19] || ''),
+      note: String(row[20] || ''),
+      recommendation: isPending ? '' : String(row[22] || '')
+    };
+  });
 
   if (history.length === 0) {
     return {
@@ -2841,38 +2841,45 @@ function getClientHistory(clientId) {
     };
   }
 
-  if (history.length === 1) {
+  // 待確認紀錄保留在歷史列表，但不得當成0分納入前後次比較。
+  const completedHistory = history.filter(item => item.status !== '待確認');
+
+  if (completedHistory.length === 0) {
     return {
       history: history,
-      summary:
-        '目前只有一次評估，尚不足以形成變化趨勢。',
+      summary: '目前評估紀錄均為待確認，尚無可比較的已完成評估。',
       difference: 0,
       difficultyChange: ''
     };
   }
 
-  const latest = history[0];
-  const previous = history[1];
+  if (completedHistory.length === 1) {
+    return {
+      history: history,
+      summary: '目前只有一次已完成評估，尚不足以形成變化趨勢。',
+      difference: 0,
+      difficultyChange: ''
+    };
+  }
 
-  const difference =
-    latest.rawErrors -
-    previous.rawErrors;
+  const latest = completedHistory[0];
+  const previous = completedHistory[1];
+  const difference = latest.rawErrors - previous.rawErrors;
 
   let summary = '';
 
   if (difference > 0) {
     summary =
-      '錯誤數較前次增加 ' +
+      '錯誤數較前次已完成評估增加 ' +
       difference +
       ' 題。建議先確認當日精神、情緒、聽力及環境因素，並持續觀察；如變化持續，請依機構流程處理。';
   } else if (difference < 0) {
     summary =
-      '錯誤數較前次減少 ' +
+      '錯誤數較前次已完成評估減少 ' +
       Math.abs(difference) +
       ' 題。可維持目前活動方式，仍應搭配現場觀察綜合判讀。';
   } else {
-    summary =
-      '錯誤數與前次相同，近期結果大致穩定。';
+    summary = '錯誤數與前次已完成評估相同，近期結果大致穩定。';
   }
 
   let difficultyChange = '';
@@ -2889,10 +2896,7 @@ function getClientHistory(clientId) {
       latest.workerDecision +
       '」。';
   } else if (latest.workerDecision) {
-    difficultyChange =
-      '目前維持「' +
-      latest.workerDecision +
-      '」難度。';
+    difficultyChange = '目前維持「' + latest.workerDecision + '」難度。';
   }
 
   return {
@@ -2902,7 +2906,6 @@ function getClientHistory(clientId) {
     difficultyChange: difficultyChange
   };
 }
-
 function testClientHistoryBackend() {
   const sheet = SpreadsheetApp
     .getActiveSpreadsheet()
