@@ -1650,6 +1650,12 @@ textarea {
 .client-management-profile strong { display:block; font-size:26px; }
 .client-management-profile span { display:block; margin-top:6px; color:#405b4f; font-size:19px; }
 .client-management-profile .actions { margin-top:16px; }
+.client-edit-form { margin-top:18px; padding:18px; border:1px solid #b6c6ba; border-radius:14px; background:#fff; }
+.client-edit-form .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.client-edit-form label { display:block; margin-bottom:12px; }
+.client-edit-form input, .client-edit-form select, .client-edit-form textarea { width:100%; }
+.client-edit-status { min-height:26px; margin:8px 0; color:#405b4f; }
+@media (max-width:650px) { .client-edit-form .form-grid { grid-template-columns:1fr; } }
 .client-management-empty { padding:18px; border:1px dashed #b6c6ba; border-radius:14px; color:#536159; background:#fff; font-size:18px; }
 @media (orientation:portrait), (max-width:900px) {
   #activityClientView .game-recommendations { grid-template-columns:minmax(0,1fr); }
@@ -2050,8 +2056,22 @@ textarea {
     <div class="actions">
       <button id="clientManagementAssessmentButton" class="primary" type="button">開始SPMSQ再測</button>
       <button id="clientManagementHistoryButton" class="secondary" type="button">查看個案活動歷程</button>
+      <button id="clientManagementEditButton" class="secondary" type="button">編輯個案資料</button>
       <button id="clientManagementServiceButton" class="secondary service-status-button close-service" type="button" onclick="openServiceStatusDialog()">結束服務</button>
     </div>
+    <form id="clientEditForm" class="client-edit-form hidden">
+      <h3>編輯個案基本資料</h3>
+      <div class="form-grid">
+        <label>姓名（必填）<input id="editClientName" type="text" maxlength="80" required></label>
+        <label>出生日期（選填）<input id="editClientBirthDate" type="date"></label>
+        <label>年齡（依出生日期計算）<input id="editClientAge" type="text" readonly aria-readonly="true" placeholder="未填出生日期"></label>
+        <label>教育程度（必填）<select id="editClientEducation" required><option value="">請選擇</option><option value="國小以下">國小以下</option><option value="國中">國中</option><option value="高中以上">高中以上</option></select></label>
+        <label>主要帶領人員<input id="editClientWorker" type="text" maxlength="30"></label>
+      </div>
+      <label>服務備註<textarea id="editClientNote" rows="3" maxlength="1000"></textarea></label>
+      <div id="clientEditStatus" class="client-edit-status" role="status" aria-live="polite"></div>
+      <div class="actions"><button id="saveClientEditButton" class="primary" type="submit">儲存修改</button><button id="cancelClientEditButton" class="secondary" type="button">取消</button></div>
+    </form>
   </div>
   <div class="actions"><button class="secondary" type="button" onclick="goHome()">返回首頁</button></div>
 </section>
@@ -3200,7 +3220,77 @@ function selectManagedClient(clientId) {
   document.getElementById('clientManagementHistoryButton').onclick = function() {
     showClientHistory(client.id);
   };
+  document.getElementById('clientEditForm').classList.add('hidden');
+  document.getElementById('clientManagementEditButton').onclick = function() {
+    openClientEditForm(client);
+  };
 }
+
+function openClientEditForm(client) {
+  const form = document.getElementById('clientEditForm');
+  document.getElementById('editClientName').value = client.name || '';
+  document.getElementById('editClientBirthDate').value = client.birthDate || '';
+  document.getElementById('editClientEducation').value = client.education || '';
+  document.getElementById('editClientWorker').value = client.worker || '';
+  document.getElementById('editClientNote').value = client.note || '';
+  updateClientEditAgePreview();
+  document.getElementById('clientEditStatus').textContent = '';
+  form.classList.remove('hidden');
+  document.getElementById('editClientName').focus();
+}
+
+function updateClientEditAgePreview() {
+  const value = document.getElementById('editClientBirthDate').value;
+  const output = document.getElementById('editClientAge');
+  if (!value) { output.value = '未填出生日期'; return; }
+  const birth = new Date(value + 'T12:00:00');
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+  output.value = Number.isFinite(age) ? age + ' 歲' : '';
+}
+
+document.getElementById('editClientBirthDate').addEventListener('input', updateClientEditAgePreview);
+document.getElementById('cancelClientEditButton').addEventListener('click', function() {
+  document.getElementById('clientEditForm').classList.add('hidden');
+  document.getElementById('clientEditStatus').textContent = '';
+});
+document.getElementById('clientEditForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+  const clientId = state.clientManagementSelectedId;
+  if (!clientId || !currentDevice || !currentDevice.deviceId) return;
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const button = document.getElementById('saveClientEditButton');
+  const status = document.getElementById('clientEditStatus');
+  button.disabled = true;
+  status.textContent = '正在儲存修改……';
+  const data = {
+    clientId: clientId,
+    deviceId: currentDevice.deviceId,
+    stationName: currentDevice.stationName,
+    name: document.getElementById('editClientName').value.trim(),
+    birthDate: document.getElementById('editClientBirthDate').value,
+    education: document.getElementById('editClientEducation').value,
+    worker: document.getElementById('editClientWorker').value.trim(),
+    note: document.getElementById('editClientNote').value.trim(),
+    operator: currentDevice.defaultWorker || ''
+  };
+  google.script.run.withSuccessHandler(function(result) {
+    button.disabled = false;
+    const index = (state.clients || []).findIndex(function(item) { return item.id === clientId; });
+    if (index >= 0) state.clients[index] = Object.assign({}, state.clients[index], result.client);
+    state.historyClient = result.client;
+    document.getElementById('clientManagementName').textContent = result.client.name || '';
+    document.getElementById('clientManagementDifficulty').textContent = '目前難度：' + (result.client.difficulty || '待評估');
+    document.getElementById('clientEditForm').classList.add('hidden');
+    renderClientManagementList();
+    showToast('個案資料已更新，修改紀錄已保存。');
+  }).withFailureHandler(function(error) {
+    button.disabled = false;
+    status.textContent = '儲存失敗：' + getErrorMessage(error);
+  }).updateClientDetails(data);
+});
 
 function toggleClientManagementPicker() {
   const picker = document.getElementById('clientManagementPicker');
