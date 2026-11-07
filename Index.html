@@ -935,7 +935,7 @@ input[type="range"] {
 .dashboard-stats {
   margin: 0 0 24px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -2616,15 +2616,10 @@ function renderDashboardSummary(summary) {
   ).textContent =
     summary.activeClientCount ?? 0;
 
-  document.getElementById(
-    'enabledGameCount'
-  ).textContent =
-    summary.enabledGameCount ?? 0;
-
-  document.getElementById(
-    'totalActivityCount'
-  ).textContent =
-    summary.totalActivityCount ?? 0;
+  const enabledGameCount = document.getElementById('enabledGameCount');
+  const totalActivityCount = document.getElementById('totalActivityCount');
+  if (enabledGameCount) enabledGameCount.textContent = summary.enabledGameCount ?? 0;
+  if (totalActivityCount) totalActivityCount.textContent = summary.totalActivityCount ?? 0;
 }
 
 function loadRecentActivities() {
