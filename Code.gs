@@ -895,10 +895,9 @@ function adminEditSelectedDevice() {
     return { success: false };
   }
 
-  const stationNames = getStationOptions().map(item => item.name);
   const stationResponse = ui.prompt(
     '修改設備資料',
-    '最近使用站別（請輸入完整站名）：\n' + stationNames.join('、'),
+    '最近使用站別（請輸入完整站名；系統會依正式站別清單核對）：',
     ui.ButtonSet.OK_CANCEL
   );
   if (stationResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
