@@ -1,9 +1,40 @@
+/**
+ * 暖憶平台管理者白名單。
+ * 一般工作人員不需帳號辨識；管理功能只允許指定管理者執行。
+ */
+const PLATFORM_ADMIN_EMAILS_ = ['zc4002@elder.org.tw'];
+
+function getCurrentPlatformUserEmail_() {
+  try {
+    return String(Session.getActiveUser().getEmail() || '')
+      .trim()
+      .toLowerCase();
+  } catch (error) {
+    return '';
+  }
+}
+
+function isPlatformAdmin_() {
+  const email = getCurrentPlatformUserEmail_();
+  return !!email && PLATFORM_ADMIN_EMAILS_.includes(email);
+}
+
+function requirePlatformAdmin_() {
+  if (!isPlatformAdmin_()) {
+    throw new Error(
+      '此功能僅限暖憶平台管理者使用。系統未能確認管理者身分，已停止執行。'
+    );
+  }
+  return true;
+}
+
 const NEW_GAME_TEST_STATION_NAME = '新遊戲測試站';
 const NEW_GAME_TEST_STATION_CODE = '999';
 // G008、G009、G010維持正式開放；G011左右拍拍樂保留在站點999試玩。
 const NEW_GAME_TEST_IDS = ['G011'];
 
 function setupDatabase() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const tables = {
@@ -176,25 +207,32 @@ function setDropdown(sheetName, column, options) {
 }
 
 function onOpen() {
+  // 一般工作人員不需帳號辨識，也不顯示試算表管理選單。
+  // 管理者帳號無法辨識時，採拒絕原則，不開放管理功能。
+  if (!isPlatformAdmin_()) return;
+
   const ui = SpreadsheetApp.getUi();
-  const adminMenu = ui.createMenu('管理者資料管理')
+  const adminMenu = ui.createMenu('日常資料管理')
     .addItem('刪除選取的錯植個案', 'adminDeleteSelectedClient')
     .addItem('刪除選取的SPMSQ評估', 'adminDeleteSelectedAssessment')
     .addItem('刪除選取的活動紀錄', 'adminDeleteSelectedActivity')
     .addItem('刪除選取的設備', 'adminDeleteSelectedDevice');
 
-  ui
-    .createMenu('失智遊戲平台')
+  const systemMenu = ui.createMenu('系統維護')
     .addItem('正式上線前檢查', 'runProductionReadinessCheck')
-    .addSubMenu(adminMenu)
-    .addSeparator()
+    .addItem('清除已確認的測試個案', 'cleanupConfirmedTestClientData')
+    .addItem('清空全部測試營運資料', 'resetAllTestOperationalData')
+    .addItem('建立測試資料', 'initializeTestData')
     .addItem('安裝 SPMSQ 自動計分', 'setupSpmsqScoring')
     .addItem('計算選取的 SPMSQ', 'calculateSelectedSpmsq')
-    .addSeparator()
     .addItem('安裝／更新遊戲模組', 'setupPlayableGames')
     .addItem('建立新遊戲測試站（999）', 'setupNewGameTestStation')
     .addItem('升級站別與設備設定', 'setupDeviceTracking')
-    .addItem('重新套用下拉選單', 'refreshValidations')
+    .addItem('重新套用下拉選單', 'refreshValidations');
+
+  ui.createMenu('暖憶平台管理')
+    .addSubMenu(adminMenu)
+    .addSubMenu(systemMenu)
     .addToUi();
 }
 
@@ -203,6 +241,7 @@ function onOpen() {
  * 僅盤點資料表、測試資料、站別／設備及遊戲狀態，不會修改或刪除任何資料。
  */
 function runProductionReadinessCheck() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const requiredSheets = [
     '個案資料', 'SPMSQ評估', '遊戲設定', '活動紀錄',
@@ -404,6 +443,7 @@ function countRowsForClientIds_(sheet, clientIdColumn, clientIds) {
  * 執行前會再次顯示姓名與筆數，並在同一試算表建立隱藏備份工作表。
  */
 function cleanupConfirmedTestClientData() {
+  requirePlatformAdmin_();
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const preview = getConfirmedTestClientCleanupPreview_(ss);
@@ -607,6 +647,7 @@ function deleteRowsForClientIds_(sheet, clientIdColumn, clientIds) {
  * 會連動刪除該個案的SPMSQ、活動及服務狀態紀錄。
  */
 function adminDeleteSelectedClient() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('個案資料');
   if (!context) return { success: false };
 
@@ -709,6 +750,7 @@ function adminDeleteSelectedClient() {
 }
 
 function adminDeleteSelectedAssessment() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('SPMSQ評估');
   if (!context) return { success: false };
 
@@ -759,6 +801,7 @@ function adminDeleteSelectedAssessment() {
 }
 
 function adminDeleteSelectedActivity() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('活動紀錄');
   if (!context) return { success: false };
 
@@ -806,6 +849,7 @@ function adminDeleteSelectedActivity() {
 }
 
 function adminDeleteSelectedDevice() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('裝置設定');
   if (!context) return { success: false };
 
@@ -1030,6 +1074,7 @@ function ensureAdminDeletionLogSheet_(ss) {
  * 保留程式、表頭、格式、下拉選單、正式站別清單及遊戲設定。
  */
 function resetAllTestOperationalData() {
+  requirePlatformAdmin_();
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const targetSheets = [
@@ -1158,6 +1203,7 @@ function clearOperationalSheetData_(sheet) {
 }
 
 function initializeTestData() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const clientSheet = ss.getSheetByName('個案資料');
@@ -1270,6 +1316,7 @@ function initializeTestData() {
 }
 
 function refreshValidations() {
+  requirePlatformAdmin_();
   setDropdown('個案資料', 6, [
     '國小以下',
     '國中',
@@ -1344,6 +1391,7 @@ function refreshValidations() {
  * 只在原欄位右側增欄，不移動既有活動紀錄的 A～O 欄。
  */
 function setupPlayableGames() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const gameSheet = ss.getSheetByName('遊戲設定');
   const activitySheet = ss.getSheetByName('活動紀錄');
@@ -1620,6 +1668,7 @@ function onEdit(e) {
   }
 }
 function setupSpmsqScoring() {
+  requirePlatformAdmin_();
   const sheet = SpreadsheetApp
     .getActiveSpreadsheet()
     .getSheetByName('SPMSQ評估');
@@ -1708,6 +1757,7 @@ function spmsqEditTrigger(e) {
 }
 
 function calculateSelectedSpmsq() {
+  requirePlatformAdmin_();
   const sheet = SpreadsheetApp.getActiveSheet();
 
   if (sheet.getName() !== 'SPMSQ評估') {
@@ -1958,6 +2008,7 @@ function applyDifficultyFromAssessment(row) {
 }
 
 function createTestSpmsq() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const clientSheet = ss.getSheetByName('個案資料');
   const assessmentSheet = ss.getSheetByName('SPMSQ評估');
@@ -3593,6 +3644,7 @@ function testGameBackend() {
  * 可重複執行，不會覆蓋既有活動紀錄。
  */
 function setupDeviceTracking() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const clientSheet = ss.getSheetByName('個案資料');
@@ -3778,6 +3830,7 @@ function isNewGameTestStation_(stationName) {
 }
 
 function setupNewGameTestStation() {
+  requirePlatformAdmin_();
   const result = ensureNewGameTestStation_();
 
   SpreadsheetApp.flush();
