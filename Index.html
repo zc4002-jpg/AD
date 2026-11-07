@@ -4026,7 +4026,7 @@ function renderGameRecommendations(result) {
   const priority=group('今天先試這個','game-priority');
   const backupGroup=state.games.length>1?group('也可以試試','game-backup-group'):null;
   const backups=document.createElement('div');backups.className='game-backups';if(backupGroup)backupGroup.appendChild(backups);
-  const extraGroup=state.games.length>6?group('其他活動','game-extra-group'):null;
+  const extraGroup=state.games.length>3?group('其他活動','game-extra-group'):null;
   const extra=document.createElement('div');extra.className='game-extra-grid';if(extraGroup){extraGroup.id='extraActivityGames';extraGroup.hidden=true;extraGroup.appendChild(extra);}
   const icons={memory:'🍎 🍎',puzzle:'🧩',silhouette:'🔍',shopping:'🛒',dice:'🎲',battle:'🙋 🙋',numberSearch:'🔎 123',numberPlacement:'🎱',teaDelivery:'🍵',drumPads:'🥁'};
   state.games.forEach(function(game,index){
@@ -4042,10 +4042,10 @@ function renderGameRecommendations(result) {
     const ready=Boolean(window.WarmMemoryGameRegistry && game.moduleKey && window.WarmMemoryGameRegistry.has(game.moduleKey));
     const button=document.createElement('button');button.type='button';button.className=game.playable && ready?'primary':'secondary';button.textContent=!game.playable?'查看活動設定':ready?'開始活動':'查看載入狀態';button.setAttribute('aria-label',button.textContent+'：'+game.name);button.addEventListener('click',function(){selectGame(game.id);});
     [tag,cover,title,skill,settings,last].forEach(function(node){card.appendChild(node);});if(reason.textContent)card.appendChild(reason);if(guideText.textContent)card.appendChild(guidance);card.appendChild(button);
-    (index===0?priority:index<6?backups:extra).appendChild(card);
+    (index===0?priority:index<3?backups:extra).appendChild(card);
   });
   updateLastPlayedLabels();
-  if(extraGroup){const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary game-more-toggle';toggle.setAttribute('aria-controls',extraGroup.id);toggle.setAttribute('aria-expanded','false');toggle.textContent='展開其他活動（'+(state.games.length-6)+'款）';toggle.addEventListener('click',function(){extraGroup.hidden=!extraGroup.hidden;toggle.setAttribute('aria-expanded',String(!extraGroup.hidden));toggle.textContent=extraGroup.hidden?'展開其他活動（'+(state.games.length-6)+'款）':'收起其他活動';});gameArea.appendChild(toggle);}
+  if(extraGroup){const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary game-more-toggle';toggle.setAttribute('aria-controls',extraGroup.id);toggle.setAttribute('aria-expanded','false');toggle.textContent='展開其他活動（'+(state.games.length-3)+'款）';toggle.addEventListener('click',function(){extraGroup.hidden=!extraGroup.hidden;toggle.setAttribute('aria-expanded',String(!extraGroup.hidden));toggle.textContent=extraGroup.hidden?'展開其他活動（'+(state.games.length-3)+'款）':'收起其他活動';});gameArea.appendChild(toggle);}
 }
 
 
