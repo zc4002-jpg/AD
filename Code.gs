@@ -2129,6 +2129,7 @@ function getClientOptions(deviceId, stationName) {
       code: String(row[1] || ''),
       name: String(row[2] || ''),
       age: row[3] instanceof Date && !isNaN(row[3].getTime()) ? calculateAge(row[3]) : null,
+      birthDate: row[3] instanceof Date && !isNaN(row[3].getTime()) ? Utilities.formatDate(row[3], Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
       hasBirthDate: row[3] instanceof Date && !isNaN(row[3].getTime()),
       education: String(row[5] || ''),
       worker: String(row[6] || ''),
@@ -2360,6 +2361,120 @@ function formatDateTimeForWeb_(value) {
 /**
  * 結束或恢復平台服務狀態。此操作不刪除資料，且每次變更均保留軌跡。
  */
+
+/**
+ * 更新個案基本資料，並將修改前後內容寫入獨立異動紀錄。
+ * 不變更既有「個案資料」欄位結構。
+ */
+function updateClientDetails(data) {
+  data = data || {};
+  const clientId = cleanWebText(data.clientId);
+  const device = getEnabledDevice_(data.deviceId);
+  const stationName = getActiveStationName_(data.stationName, device.stationName);
+  const name = cleanWebText(data.name).substring(0, 80);
+  const education = cleanWebText(data.education);
+  const worker = cleanWebText(data.worker).substring(0, 30) || '未指定';
+  const note = cleanWebText(data.note);
+  const birthDateText = cleanWebText(data.birthDate);
+  const operator = cleanWebText(data.operator || device.defaultWorker).substring(0, 30) || '未指定';
+
+  if (!clientId || !name) throw new Error('請確認個案及姓名。');
+  if (!['國小以下', '國中', '高中以上'].includes(education)) {
+    throw new Error('請選擇有效的教育程度。');
+  }
+
+  let birthDate = '';
+  if (birthDateText) {
+    const parts = birthDateText.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(value => !Number.isInteger(value) || value <= 0)) {
+      throw new Error('出生日期格式不正確。');
+    }
+    birthDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+    if (birthDate.getFullYear() !== parts[0] || birthDate.getMonth() !== parts[1] - 1 || birthDate.getDate() !== parts[2]) {
+      throw new Error('出生日期不是有效日期。');
+    }
+    const age = calculateAge(birthDate);
+    if (!Number.isInteger(age) || age < 55 || age > 120) {
+      throw new Error('出生日期計算年齡須為55至120歲，請確認日期。');
+    }
+  }
+
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('個案資料');
+    const rowNumber = findClientRow(clientId);
+    if (!rowNumber) throw new Error('找不到此個案。');
+    const range = sheet.getRange(rowNumber, 1, 1, 13);
+    const row = range.getValues()[0];
+    if (String(row[12] || '').trim() !== stationName) {
+      throw new Error('此個案不屬於目前選擇的站別。');
+    }
+
+    const before = {
+      name: String(row[2] || ''),
+      birthDate: row[3] instanceof Date && !isNaN(row[3].getTime()) ? Utilities.formatDate(row[3], Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+      education: String(row[5] || ''),
+      worker: String(row[6] || ''),
+      note: String(row[7] || '')
+    };
+    const after = {
+      name: name,
+      birthDate: birthDate ? Utilities.formatDate(birthDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+      education: education,
+      worker: worker,
+      note: note
+    };
+    const changed = Object.keys(after).filter(key => before[key] !== after[key]);
+    if (!changed.length) {
+      return { success: true, changed: false, client: {
+        id: clientId, name: name, birthDate: after.birthDate,
+        age: birthDate ? calculateAge(birthDate) : null,
+        hasBirthDate: !!birthDate, education: education, worker: worker,
+        note: note, status: String(row[9] || ''), difficulty: String(row[10] || '待評估')
+      }};
+    }
+
+    // 僅更新既有欄位 B? 不；只更新姓名C、生日D、年齡E、教育F、帶領人G、備註H。
+    sheet.getRange(rowNumber, 3, 1, 6).setValues([[
+      name, birthDate, birthDate ? calculateAge(birthDate) : '', education, worker, note
+    ]]);
+    sheet.getRange(rowNumber, 4).setNumberFormat('yyyy/mm/dd');
+
+    const log = ensureClientDataChangeLogSheet_(ss);
+    log.appendRow([
+      createId('CL'), clientId, new Date(), operator, stationName,
+      changed.join('、'), JSON.stringify(before), JSON.stringify(after)
+    ]);
+    log.getRange(log.getLastRow(), 3).setNumberFormat('yyyy/mm/dd hh:mm:ss');
+    SpreadsheetApp.flush();
+
+    return { success: true, changed: true, client: {
+      id: clientId, name: name, birthDate: after.birthDate,
+      age: birthDate ? calculateAge(birthDate) : null,
+      hasBirthDate: !!birthDate, education: education, worker: worker,
+      note: note, status: String(row[9] || ''), difficulty: String(row[10] || '待評估')
+    }};
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function ensureClientDataChangeLogSheet_(ss) {
+  const headers = ['異動ID','個案ID','修改時間','操作人員','站別','異動欄位','修改前資料','修改後資料'];
+  let sheet = ss.getSheetByName('個案資料異動紀錄');
+  if (!sheet) sheet = ss.insertSheet('個案資料異動紀錄');
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  sheet.getRange(1, 1, 1, headers.length)
+    .setBackground('#2e6856').setFontColor('#ffffff').setFontWeight('bold')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
 function updateClientServiceStatus(data) {
   data = data || {};
 
