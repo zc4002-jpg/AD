@@ -2035,10 +2035,13 @@ textarea {
   <span class="eyebrow">CLIENT MANAGEMENT</span>
   <h2>個案管理</h2>
   <p class="lead">查找本服務站的個案，再選擇要進行的工作。</p>
-  <label for="clientManagementSearch">搜尋個案（姓名或個案編號）
-    <input id="clientManagementSearch" type="search" placeholder="輸入姓名或個案編號">
-  </label>
-  <div id="clientManagementList" class="client-management-list" aria-live="polite">正在載入個案……</div>
+  <div id="clientManagementPicker">
+    <label for="clientManagementSearch">搜尋個案（姓名或個案編號）
+      <input id="clientManagementSearch" type="search" placeholder="輸入姓名或個案編號">
+    </label>
+    <div id="clientManagementList" class="client-management-list" aria-live="polite">正在載入個案……</div>
+  </div>
+  <button id="clientManagementChangeButton" class="secondary hidden" type="button" onclick="toggleClientManagementPicker()">更換個案／展開清單</button>
   <div id="clientManagementProfile" class="client-management-profile hidden">
     <div>
       <strong id="clientManagementName"></strong>
@@ -3086,6 +3089,8 @@ function goHome() {
   }
   state.clientManagementSelectedId = '';
   document.getElementById('clientManagementSearch').value = '';
+  document.getElementById('clientManagementPicker').classList.remove('hidden');
+  document.getElementById('clientManagementChangeButton').classList.add('hidden');
   document.getElementById('clientManagementProfile').classList.add('hidden');
   document.getElementById('clientManagementList').textContent = '正在載入個案……';
   showView('clientManagementView');
@@ -3134,6 +3139,8 @@ function selectManagedClient(clientId) {
   document.getElementById('clientManagementDifficulty').textContent =
     '目前難度：' + (client.difficulty || '待評估');
   document.getElementById('clientManagementProfile').classList.remove('hidden');
+  document.getElementById('clientManagementPicker').classList.add('hidden');
+  document.getElementById('clientManagementChangeButton').classList.remove('hidden');
   renderClientManagementList();
   document.getElementById('clientManagementAssessmentButton').onclick = function() {
     beginAssessment(client);
@@ -3141,6 +3148,22 @@ function selectManagedClient(clientId) {
   document.getElementById('clientManagementHistoryButton').onclick = function() {
     showClientHistory(client.id);
   };
+}
+
+function toggleClientManagementPicker() {
+  const picker = document.getElementById('clientManagementPicker');
+  const changeButton = document.getElementById('clientManagementChangeButton');
+  if (!picker || !changeButton) return;
+
+  const isCollapsed = picker.classList.contains('hidden');
+  if (isCollapsed) {
+    picker.classList.remove('hidden');
+    changeButton.textContent = '收合個案清單';
+    document.getElementById('clientManagementSearch').focus();
+  } else {
+    picker.classList.add('hidden');
+    changeButton.textContent = '更換個案／展開清單';
+  }
 }
 
 function showExistingClient() {
