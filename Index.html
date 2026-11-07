@@ -2050,6 +2050,7 @@ textarea {
     <div class="actions">
       <button id="clientManagementAssessmentButton" class="primary" type="button">開始SPMSQ再測</button>
       <button id="clientManagementHistoryButton" class="secondary" type="button">查看個案活動歷程</button>
+      <button id="clientManagementServiceButton" class="secondary service-status-button close-service" type="button" onclick="openServiceStatusDialog()">結束服務</button>
     </div>
   </div>
   <div class="actions"><button class="secondary" type="button" onclick="goHome()">返回首頁</button></div>
@@ -3043,6 +3044,15 @@ function confirmServiceStatusChange() {
       setLoading(false);
       closeServiceStatusDialog();
       document.getElementById('historyServiceStatus').value = result.status;
+      if (state.historyClient && state.historyClient.id === result.clientId) {
+        state.historyClient.status = result.status;
+      }
+      const managementServiceButton = document.getElementById('clientManagementServiceButton');
+      if (managementServiceButton && state.clientManagementSelectedId === result.clientId) {
+        const isNowClosed = result.status === '已結案';
+        managementServiceButton.textContent = isNowClosed ? '恢復服務' : '結束服務';
+        managementServiceButton.classList.toggle('close-service', !isNowClosed);
+      }
       showToast(
         result.status === '已結案'
           ? '已結束「' + result.clientName + '」的服務，紀錄仍完整保留。'
@@ -3135,9 +3145,14 @@ function selectManagedClient(clientId) {
   const client = (state.clients || []).find(function(item) { return item.id === clientId; });
   if (!client) return;
   state.clientManagementSelectedId = clientId;
+  state.historyClient = client;
   document.getElementById('clientManagementName').textContent = client.name || '';
   document.getElementById('clientManagementDifficulty').textContent =
     '目前難度：' + (client.difficulty || '待評估');
+  const serviceButton = document.getElementById('clientManagementServiceButton');
+  const isClosed = client.status === '已結案';
+  serviceButton.textContent = isClosed ? '恢復服務' : '結束服務';
+  serviceButton.classList.toggle('close-service', !isClosed);
   document.getElementById('clientManagementProfile').classList.remove('hidden');
   document.getElementById('clientManagementPicker').classList.add('hidden');
   document.getElementById('clientManagementChangeButton').classList.remove('hidden');
