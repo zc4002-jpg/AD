@@ -4397,7 +4397,7 @@ function showDeviceSetup(message) {
   } else {
     document.getElementById('deviceStationInput').value = '';
     document.getElementById('deviceNameInput').value = '';
-    document.getElementById('deviceWorkerInput').value = '';
+    document.getElementById('deviceWorkerInput').value = readLastUsedWorker();
     document.getElementById('devicePairingCodeInput').value = '';
   }
 
@@ -4461,9 +4461,9 @@ function activateDevice(result) {
     .getElementById('deviceSetupOverlay')
     .classList.add('hidden');
 
-  if (!result.stationName || !result.defaultWorker || !result.pairingCode) {
+  if (!result.stationName || !result.pairingCode || (!result.defaultWorker && !readLastUsedWorker())) {
     showDeviceSetup(
-      '請選擇本次使用站別，並確認預設帶領人員。'
+      '請確認服務站及帶領人員設定。'
     );
     return;
   }
@@ -4530,9 +4530,9 @@ function saveDeviceSetup() {
 
   const saved = readSavedDevice();
 
-  if (!saved && !pairingCode && (!stationName || !deviceName || !defaultWorker)) {
+  if (!saved && !pairingCode && (!stationName || !defaultWorker)) {
     messageArea.textContent =
-      '新增設備請選擇本次站別，並填寫設備名稱及預設帶領人員；連接既有設備則輸入連接碼。';
+      '首次使用請選擇服務站並確認帶領人員；設備名稱及連接碼會由系統自動產生。';
     return;
   }
 
