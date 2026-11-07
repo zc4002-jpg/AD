@@ -9,7 +9,7 @@
     content="width=device-width, initial-scale=1"
   >
 
-  <title>暖憶｜SPMSQ服務評估</title>
+  <title>暖憶｜高齡認知活動平台</title>
 
   <style>
     :root {
@@ -1641,6 +1641,16 @@ textarea {
 .record-detail-fields div { border-bottom:1px solid #deddd5; padding-bottom:10px; }
 .record-detail-fields dt { color:#536159; font-size:16px; }
 .record-detail-fields dd { margin:4px 0 0; color:#26312d; font-size:19px; }
+.client-management-list { display:grid; gap:10px; margin:18px 0; }
+.client-management-item { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:64px; padding:14px 18px; border:1px solid #b6c6ba; border-radius:14px; background:#fff; color:#26312d; text-align:left; }
+.client-management-item strong { font-size:20px; }
+.client-management-item span { color:#405b4f; font-size:17px; }
+.client-management-item[aria-pressed="true"] { border:3px solid #214e40; background:#e2eee6; }
+.client-management-profile { margin:20px 0; padding:20px; border:2px solid #214e40; border-radius:16px; background:#f4f5ed; }
+.client-management-profile strong { display:block; font-size:26px; }
+.client-management-profile span { display:block; margin-top:6px; color:#405b4f; font-size:19px; }
+.client-management-profile .actions { margin-top:16px; }
+.client-management-empty { padding:18px; border:1px dashed #b6c6ba; border-radius:14px; color:#536159; background:#fff; font-size:18px; }
 @media (orientation:portrait), (max-width:900px) {
   #activityClientView .game-recommendations { grid-template-columns:minmax(0,1fr); }
   #activityClientView .game-priority .game-cover { min-height:130px; font-size:80px; }
@@ -1682,7 +1692,7 @@ textarea {
 
         <div>
           <h1>暖憶</h1>
-          <p>認知活動與SPMSQ服務觀察</p>
+          <p>高齡認知活動與服務觀察</p>
         </div>
       </div>
 
@@ -1734,21 +1744,7 @@ textarea {
     </div>
   </div>
 
-  <div class="dashboard-stat-card">
-    <span>啟用遊戲</span>
-    <div>
-      <strong id="enabledGameCount">—</strong>
-      <small>款</small>
-    </div>
-  </div>
-
-  <div class="dashboard-stat-card">
-    <span>累計活動</span>
-    <div>
-      <strong id="totalActivityCount">—</strong>
-      <small>場</small>
-    </div>
-  </div>
+  
 </div>
 
       <div class="mode-grid">
@@ -1767,12 +1763,12 @@ textarea {
         <button
           class="mode-card"
           type="button"
-          onclick="showExistingClient()"
+          onclick="showClientManagement()"
         >
-          <span class="mode-icon">↻</span>
-          <strong>原有個案再測</strong>
+          <span class="mode-icon">▤</span>
+          <strong>個案管理</strong>
           <span>
-            選擇服務個案，保留本次與歷次結果。
+            查找個案，進行SPMSQ再測或查看活動歷程。
           </span>
         </button>
 
@@ -1803,7 +1799,7 @@ textarea {
         type="button"
         onclick="showClientHistory()"
       >
-        查詢個案紀錄
+        個案活動歷程
       </button>
 
       <button
@@ -2034,6 +2030,27 @@ textarea {
       </div>
     </section>
 
+
+<section id="clientManagementView" class="panel hidden">
+  <span class="eyebrow">CLIENT MANAGEMENT</span>
+  <h2>個案管理</h2>
+  <p class="lead">查找本服務站的個案，再選擇要進行的工作。</p>
+  <label for="clientManagementSearch">搜尋個案（姓名或個案編號）
+    <input id="clientManagementSearch" type="search" placeholder="輸入姓名或個案編號">
+  </label>
+  <div id="clientManagementList" class="client-management-list" aria-live="polite">正在載入個案……</div>
+  <div id="clientManagementProfile" class="client-management-profile hidden">
+    <div>
+      <strong id="clientManagementName"></strong>
+      <span id="clientManagementDifficulty"></span>
+    </div>
+    <div class="actions">
+      <button id="clientManagementAssessmentButton" class="primary" type="button">開始SPMSQ再測</button>
+      <button id="clientManagementHistoryButton" class="secondary" type="button">查看個案活動歷程</button>
+    </div>
+  </div>
+  <div class="actions"><button class="secondary" type="button" onclick="goHome()">返回首頁</button></div>
+</section>
 
 <section id="activityClientView" class="panel hidden">
   <div class="activity-step">活動挑選 → 一起進行 → 夥伴紀錄</div>
@@ -2441,6 +2458,7 @@ applyConditionalRequiredMarkers();
 
 const state = {
   clients: [],
+  clientManagementSelectedId: '',
   client: null,
   games: [],
   selectedGame: null,
@@ -2466,6 +2484,7 @@ const state = {
 
 const viewIds = [
   'homeView',
+  'clientManagementView',
   'clientHistoryView',
   'newClientView',
   'existingClientView',
@@ -2682,10 +2701,7 @@ function renderRecentActivities(activities) {
 
     const source = document.createElement('span');
 
-    source.textContent =
-      (activity.stationName || '未設定站別') +
-      '・' +
-      (activity.deviceName || '未設定設備');
+    source.textContent = activity.stationName || '未設定站別';
 
     content.appendChild(client);
     content.appendChild(game);
@@ -3068,7 +3084,71 @@ function goHome() {
       showView('newClientView');
     }
 
-    function showExistingClient() {
+    function showClientManagement() {
+  if (!currentDevice || !currentDevice.deviceId) {
+    showDeviceSetup('請先完成設備設定。');
+    return;
+  }
+  state.clientManagementSelectedId = '';
+  document.getElementById('clientManagementSearch').value = '';
+  document.getElementById('clientManagementProfile').classList.add('hidden');
+  document.getElementById('clientManagementList').textContent = '正在載入個案……';
+  showView('clientManagementView');
+  loadClients();
+}
+
+function renderClientManagementList() {
+  const list = document.getElementById('clientManagementList');
+  if (!list) return;
+  const query = String(document.getElementById('clientManagementSearch').value || '').trim().toLowerCase();
+  const clients = (state.clients || []).filter(function(client) {
+    return !query ||
+      String(client.name || '').toLowerCase().includes(query) ||
+      String(client.id || '').toLowerCase().includes(query);
+  }).sort(function(a,b) {
+    return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hant');
+  });
+  list.textContent = '';
+  if (!clients.length) {
+    const empty = document.createElement('div');
+    empty.className = 'client-management-empty';
+    empty.textContent = query ? '找不到符合條件的服務中個案。' : '目前站別沒有服務中的個案。';
+    list.appendChild(empty);
+    return;
+  }
+  clients.forEach(function(client) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'client-management-item';
+    button.setAttribute('aria-pressed', String(client.id === state.clientManagementSelectedId));
+    const name = document.createElement('strong');
+    name.textContent = client.name || '未命名個案';
+    const difficulty = document.createElement('span');
+    difficulty.textContent = '目前難度：' + (client.difficulty || '待評估');
+    button.append(name, difficulty);
+    button.addEventListener('click', function() { selectManagedClient(client.id); });
+    list.appendChild(button);
+  });
+}
+
+function selectManagedClient(clientId) {
+  const client = (state.clients || []).find(function(item) { return item.id === clientId; });
+  if (!client) return;
+  state.clientManagementSelectedId = clientId;
+  document.getElementById('clientManagementName').textContent = client.name || '';
+  document.getElementById('clientManagementDifficulty').textContent =
+    '目前難度：' + (client.difficulty || '待評估');
+  document.getElementById('clientManagementProfile').classList.remove('hidden');
+  renderClientManagementList();
+  document.getElementById('clientManagementAssessmentButton').onclick = function() {
+    beginAssessment(client);
+  };
+  document.getElementById('clientManagementHistoryButton').onclick = function() {
+    showClientHistory(client.id);
+  };
+}
+
+function showExistingClient() {
       if (!currentDevice || !currentDevice.deviceId) {
         showDeviceSetup('請先完成設備設定。');
         return;
@@ -3177,6 +3257,7 @@ function goHome() {
   google.script.run
     .withSuccessHandler(clients => {
       state.clients = clients || [];
+      renderClientManagementList();
 
       const selectIds = [
         'clientSelect',
@@ -4174,9 +4255,7 @@ function renderDeviceSummary() {
   summary.textContent = [
     (isTestStation ? '【測試站999】' : '') +
       '目前站別：' + (currentDevice.stationName || '未選擇'),
-    currentDevice.deviceName,
-    '帶領：' + (currentDevice.defaultWorker || '未設定'),
-    '連接碼：' + (currentDevice.pairingCode || '尚無')
+    '預設帶領：' + (currentDevice.defaultWorker || '未設定')
   ].filter(Boolean).join('｜');
 }
 
@@ -4341,6 +4420,8 @@ if (assessmentSubmitButton) {
     }
   });
 }
+
+document.getElementById('clientManagementSearch').addEventListener('input', renderClientManagementList);
 
 initializeBirthDateSelectors();
 loadStationDirectory();
