@@ -2983,9 +2983,49 @@ function renderClientGameRecordList(records,summary) {
 function showActivityRecordDetails(record) {
   document.getElementById('activityDetailTitle').textContent=record.gameName||'活動詳細紀錄';
   const body=document.getElementById('activityDetailBody');body.textContent='';
-  const fields=document.createElement('dl');fields.className='record-detail-fields';
-  [['日期',record.date||'—'],['狀態',record.completed?'已完成':'中途結束'],['本次難度',record.level||'—'],['完成度',Number(record.completion||0)+'%'],['協助程度',record.help||'未填寫'],['情緒反應',record.mood||'未填寫'],['帶領人員',record.worker||'未填寫'],['活動時間',formatRecordDuration(record.durationSeconds)],['得分',Number(record.score||0)],['答對／答錯',Number(record.correctCount||0)+'／'+Number(record.wrongCount||0)],['提示次數',Number(record.hintCount||0)]].forEach(function(item){const group=document.createElement('div'),label=document.createElement('dt'),value=document.createElement('dd');label.textContent=item[0];value.textContent=String(item[1]);group.appendChild(label);group.appendChild(value);fields.appendChild(group);});body.appendChild(fields);
-  const note=document.createElement('p');note.textContent='服務觀察：\n'+(record.note||'未填寫');body.appendChild(note);
+
+  function appendDetailFields(container, items) {
+    const fields=document.createElement('dl');
+    fields.className='record-detail-fields';
+    items.forEach(function(item){
+      const group=document.createElement('div');
+      const label=document.createElement('dt');
+      const value=document.createElement('dd');
+      label.textContent=item[0];
+      value.textContent=String(item[1]);
+      group.appendChild(label);
+      group.appendChild(value);
+      fields.appendChild(group);
+    });
+    container.appendChild(fields);
+  }
+
+  appendDetailFields(body,[
+    ['日期',record.date||'—'],
+    ['狀態',record.completed?'已完成':'中途結束'],
+    ['本次難度',record.level||'—'],
+    ['完成度',Number(record.completion||0)+'%'],
+    ['協助程度',record.help||'未填寫'],
+    ['情緒反應',record.mood||'未填寫'],
+    ['帶領人員',record.worker||'未填寫']
+  ]);
+
+  const performance=document.createElement('details');
+  performance.className='record-performance-details';
+  const summary=document.createElement('summary');
+  summary.textContent='遊戲表現（展開查看）';
+  performance.appendChild(summary);
+  appendDetailFields(performance,[
+    ['活動時間',formatRecordDuration(record.durationSeconds)],
+    ['得分',Number(record.score||0)],
+    ['答對／答錯',Number(record.correctCount||0)+'／'+Number(record.wrongCount||0)],
+    ['提示次數',Number(record.hintCount||0)]
+  ]);
+  body.appendChild(performance);
+
+  const note=document.createElement('p');
+  note.textContent='服務觀察：\n'+(record.note||'未填寫');
+  body.appendChild(note);
   openActivityDialog(document.getElementById('activityDetailOverlay'),document.getElementById('activityDetailClose'),closeActivityDialog);
 }
 
