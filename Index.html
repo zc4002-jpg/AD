@@ -1710,9 +1710,9 @@ textarea {
         <button
           class="device-settings-button"
           type="button"
-          onclick="showDeviceSetup('')"
+          onclick="showDeviceSetup('設備設定：已登錄設備會沿用原站別；如需更換站別，可在此修改。')"
         >
-          切換站別／設備
+          設備設定
         </button>
       </div>
     </header>
@@ -2248,11 +2248,10 @@ textarea {
   <div class="device-setup-card">
     <div class="device-setup-mark">暖憶</div>
 
-    <h2 id="deviceSetupTitle">選擇站別與設備</h2>
+    <h2 id="deviceSetupTitle">設備設定</h2>
 
-    <p>
-      先選擇本次服務站別。設備會記住最近使用站別，之後仍可隨時切換。
-      若是同一設備的另一個瀏覽器，可輸入相同的六位數連接碼。
+    <p id="deviceSetupDescription">
+      已登錄設備開啟平台時會直接進入，不必重新選站。只有首次使用的設備需要選擇服務站並完成登錄。
     </p>
 
     <label for="deviceStationInput">本次使用站別（新增設備必填）</label>
@@ -2272,31 +2271,34 @@ textarea {
       ></div>
     </div>
 
-    <label for="deviceNameInput">設備名稱（新增設備必填）</label>
-    <input
-      id="deviceNameInput"
-      type="text"
-      placeholder="例如：公用 iPad 01"
-      autocomplete="off"
-    >
-
-    <label for="deviceWorkerInput">預設帶領人員（新增設備必填）</label>
+    <label for="deviceWorkerInput">帶領人員（首次登錄時請輸入）</label>
     <input
       id="deviceWorkerInput"
       type="text"
       maxlength="30"
-      placeholder="例如：王社工"
+      placeholder="請輸入本設備預設帶領人員"
       autocomplete="name"
     >
 
-    <label for="devicePairingCodeInput">設備連接碼（連接既有設備時必填；新增設備可留空）</label>
-    <input
-      id="devicePairingCodeInput"
-      type="text"
-      maxlength="30"
-      placeholder="新設備可留空，系統會產生六位數字"
-      autocomplete="off"
-    >
+    <details class="device-advanced-fields">
+      <summary>進階設備資訊</summary>
+      <label for="deviceNameInput">設備名稱（系統自動產生，可修改）</label>
+      <input
+        id="deviceNameInput"
+        type="text"
+        placeholder="留白時由系統自動產生"
+        autocomplete="off"
+      >
+
+      <label for="devicePairingCodeInput">設備連接碼（跨瀏覽器連接時使用）</label>
+      <input
+        id="devicePairingCodeInput"
+        type="text"
+        maxlength="30"
+        placeholder="留白時由系統自動產生"
+        autocomplete="off"
+      >
+    </details>
 
     <div
       id="deviceSetupMessage"
@@ -4155,7 +4157,7 @@ function prepareActivityRecord(result) {
   const form=document.getElementById('activityForm');form.reset();setActivityRecordControls();
   document.getElementById('activityHelp').value='';document.getElementById('activityMood').value='';
   document.getElementById('activityLevel').value=result.level||game.suggestedLevel;
-  document.getElementById('activityWorker').value=(currentDevice && currentDevice.defaultWorker)||state.client.worker||'';
+  document.getElementById('activityWorker').value=readLastUsedWorker()||(currentDevice && currentDevice.defaultWorker)||state.client.worker||'';
   document.getElementById('completionInput').value=Math.max(0,Math.min(100,Number(result.completion||0)));updateCompletionValue();
   document.getElementById('activityCompletionStatus').textContent=result.completed===false?'中途結束':'已完成';
   const details=document.getElementById('selectedGameDetails');details.textContent='';const title=document.createElement('strong'),description=document.createElement('span');title.textContent=state.client.name+'｜'+game.name;description.textContent=result.completed===false?'已保留結束前的遊戲進度，請補充現場觀察。':'活動已完成，請補充現場觀察。';details.appendChild(title);details.appendChild(description);
@@ -4226,6 +4228,7 @@ document.getElementById('activityForm').addEventListener('submit',function(event
   const activityData={clientId:clientId,gameId:state.selectedGame.id,level:state.gameResult.level||state.selectedGame.suggestedLevel,completion:Math.max(0,Math.min(100,Number(state.gameResult.completion||0))),help:help,mood:mood,note:document.getElementById('activityNote').value,worker:worker,deviceId:currentDevice.deviceId,stationName:currentDevice.stationName,deviceName:currentDevice.deviceName,gameResult:state.gameResult};
   state.activitySaving=true;setActivityRecordControls();setActivityRecordStatus('正在儲存活動紀錄，請稍候。');
   google.script.run.withSuccessHandler(function(){
+     saveLastUsedWorker(worker);
     state.activitySaved=true;setActivityRecordControls();setActivityRecordStatus('活動紀錄已儲存，正在確認是否需要檢視難度……','saved');
     google.script.run.withSuccessHandler(function(history){
       if(history && history.shouldReviewDifficulty){showDifficultyReview(history);return;}
@@ -4239,6 +4242,7 @@ document.getElementById('activityForm').addEventListener('submit',function(event
 
 
 const DEVICE_STORAGE_KEY = 'warmMemoryDeviceV1';
+const LAST_WORKER_STORAGE_KEY = 'warmMemoryLastWorkerV1';
 const NEW_GAME_TEST_STATION_NAME = '新遊戲測試站';
 let currentDevice = null;
 let stationDirectory = [];
@@ -4349,6 +4353,24 @@ function readSavedDevice() {
   }
 }
 
+function readLastUsedWorker() {
+  try {
+    return String(localStorage.getItem(LAST_WORKER_STORAGE_KEY) || '').trim();
+  } catch (error) {
+    return '';
+  }
+}
+
+function saveLastUsedWorker(worker) {
+  const value = String(worker || '').trim().substring(0, 30);
+  if (!value) return;
+  try {
+    localStorage.setItem(LAST_WORKER_STORAGE_KEY, value);
+  } catch (error) {
+    console.warn('無法記住上次帶領人員：', error);
+  }
+}
+
 function showDeviceSetup(message) {
   const overlay =
     document.getElementById('deviceSetupOverlay');
@@ -4368,7 +4390,7 @@ function showDeviceSetup(message) {
       saved.deviceName || '';
 
     document.getElementById('deviceWorkerInput').value =
-      saved.defaultWorker || '';
+      saved.defaultWorker || readLastUsedWorker() || '';
 
     document.getElementById('devicePairingCodeInput').value =
       saved.pairingCode || '';
@@ -4526,11 +4548,15 @@ function saveDeviceSetup() {
     }
   }
 
+  const generatedDeviceName = deviceName || (
+    '暖憶設備-' + String(Date.now()).slice(-8)
+  );
+
   const deviceData = {
     deviceId: saved && saved.deviceId ? saved.deviceId : '',
     stationName: stationName,
-    deviceName: deviceName,
-    defaultWorker: defaultWorker,
+    deviceName: generatedDeviceName,
+    defaultWorker: defaultWorker || (saved && saved.defaultWorker) || '',
     pairingCode: pairingCode
   };
 
@@ -4545,7 +4571,7 @@ function saveDeviceSetup() {
 
       activateDevice(result);
       showToast(
-        '已切換至「' + result.stationName + '」；設備連接碼：' + result.pairingCode
+        '設備已設定完成，目前服務站：' + result.stationName
       );
     })
     .withFailureHandler(function(error) {
