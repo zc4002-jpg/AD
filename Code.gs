@@ -1,9 +1,40 @@
+/**
+ * 暖憶平台管理者白名單。
+ * 一般工作人員不需帳號辨識；管理功能只允許指定管理者執行。
+ */
+const PLATFORM_ADMIN_EMAILS_ = ['zc4002@elder.org.tw'];
+
+function getCurrentPlatformUserEmail_() {
+  try {
+    return String(Session.getActiveUser().getEmail() || '')
+      .trim()
+      .toLowerCase();
+  } catch (error) {
+    return '';
+  }
+}
+
+function isPlatformAdmin_() {
+  const email = getCurrentPlatformUserEmail_();
+  return !!email && PLATFORM_ADMIN_EMAILS_.includes(email);
+}
+
+function requirePlatformAdmin_() {
+  if (!isPlatformAdmin_()) {
+    throw new Error(
+      '此功能僅限暖憶平台管理者使用。系統未能確認管理者身分，已停止執行。'
+    );
+  }
+  return true;
+}
+
 const NEW_GAME_TEST_STATION_NAME = '新遊戲測試站';
 const NEW_GAME_TEST_STATION_CODE = '999';
 // G008、G009、G010維持正式開放；G011左右拍拍樂保留在站點999試玩。
 const NEW_GAME_TEST_IDS = ['G011'];
 
 function setupDatabase() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const tables = {
@@ -176,25 +207,36 @@ function setDropdown(sheetName, column, options) {
 }
 
 function onOpen() {
+  // 一般工作人員不需帳號辨識，也不顯示試算表管理選單。
+  // 管理者帳號無法辨識時，採拒絕原則，不開放管理功能。
+  if (!isPlatformAdmin_()) return;
+
   const ui = SpreadsheetApp.getUi();
-  const adminMenu = ui.createMenu('管理者資料管理')
+  const adminMenu = ui.createMenu('日常資料管理')
+    .addItem('查看／篩選設備清單', 'openDeviceManagementList')
+    .addItem('修改選取設備資料', 'adminEditSelectedDevice')
+    .addItem('啟用／停用選取設備', 'adminToggleSelectedDeviceStatus')
+    .addSeparator()
     .addItem('刪除選取的錯植個案', 'adminDeleteSelectedClient')
     .addItem('刪除選取的SPMSQ評估', 'adminDeleteSelectedAssessment')
     .addItem('刪除選取的活動紀錄', 'adminDeleteSelectedActivity')
     .addItem('刪除選取的設備', 'adminDeleteSelectedDevice');
 
-  ui
-    .createMenu('失智遊戲平台')
+  const systemMenu = ui.createMenu('系統維護')
     .addItem('正式上線前檢查', 'runProductionReadinessCheck')
-    .addSubMenu(adminMenu)
-    .addSeparator()
+    .addItem('清除已確認的測試個案', 'cleanupConfirmedTestClientData')
+    .addItem('清空全部測試營運資料', 'resetAllTestOperationalData')
+    .addItem('建立測試資料', 'initializeTestData')
     .addItem('安裝 SPMSQ 自動計分', 'setupSpmsqScoring')
     .addItem('計算選取的 SPMSQ', 'calculateSelectedSpmsq')
-    .addSeparator()
     .addItem('安裝／更新遊戲模組', 'setupPlayableGames')
     .addItem('建立新遊戲測試站（999）', 'setupNewGameTestStation')
     .addItem('升級站別與設備設定', 'setupDeviceTracking')
-    .addItem('重新套用下拉選單', 'refreshValidations')
+    .addItem('重新套用下拉選單', 'refreshValidations');
+
+  ui.createMenu('暖憶平台管理')
+    .addSubMenu(adminMenu)
+    .addSubMenu(systemMenu)
     .addToUi();
 }
 
@@ -203,6 +245,7 @@ function onOpen() {
  * 僅盤點資料表、測試資料、站別／設備及遊戲狀態，不會修改或刪除任何資料。
  */
 function runProductionReadinessCheck() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const requiredSheets = [
     '個案資料', 'SPMSQ評估', '遊戲設定', '活動紀錄',
@@ -404,6 +447,7 @@ function countRowsForClientIds_(sheet, clientIdColumn, clientIds) {
  * 執行前會再次顯示姓名與筆數，並在同一試算表建立隱藏備份工作表。
  */
 function cleanupConfirmedTestClientData() {
+  requirePlatformAdmin_();
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const preview = getConfirmedTestClientCleanupPreview_(ss);
@@ -607,6 +651,7 @@ function deleteRowsForClientIds_(sheet, clientIdColumn, clientIds) {
  * 會連動刪除該個案的SPMSQ、活動及服務狀態紀錄。
  */
 function adminDeleteSelectedClient() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('個案資料');
   if (!context) return { success: false };
 
@@ -709,6 +754,7 @@ function adminDeleteSelectedClient() {
 }
 
 function adminDeleteSelectedAssessment() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('SPMSQ評估');
   if (!context) return { success: false };
 
@@ -759,6 +805,7 @@ function adminDeleteSelectedAssessment() {
 }
 
 function adminDeleteSelectedActivity() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('活動紀錄');
   if (!context) return { success: false };
 
@@ -805,7 +852,163 @@ function adminDeleteSelectedActivity() {
   });
 }
 
+/**
+ * 開啟設備清單。使用既有「裝置設定」工作表，不新增或變更欄位。
+ */
+function openDeviceManagementList() {
+  requirePlatformAdmin_();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('裝置設定');
+  if (!sheet) throw new Error('找不到「裝置設定」工作表，請先確認設備設定。');
+  ss.setActiveSheet(sheet);
+  if (sheet.getLastRow() >= 1 && !sheet.getFilter()) {
+    sheet.getRange(1, 1, sheet.getLastRow(), 8).createFilter();
+  }
+  SpreadsheetApp.getUi().alert(
+    '設備清單已開啟',
+    '可使用「裝置名稱、最近使用站別、啟用狀態、預設帶領人員」欄位的篩選功能查找設備。\n請選取設備資料列後，再使用管理選單修改或啟用／停用。',
+    SpreadsheetApp.getUi().ButtonSet.OK
+  );
+}
+
+/**
+ * 修改選取設備的名稱、最近使用站別及預設帶領人員。
+ * 僅更新既有欄位B、C、G；保留裝置ID、狀態、時間及連接碼。
+ */
+function adminEditSelectedDevice() {
+  requirePlatformAdmin_();
+  const context = getAdminSelectedRow_('裝置設定');
+  if (!context) return { success: false };
+  const ui = SpreadsheetApp.getUi();
+  const values = context.sheet.getRange(context.row, 1, 1, 8).getDisplayValues()[0];
+  const deviceId = String(values[0] || '').trim();
+  if (!deviceId) {
+    ui.alert('此列沒有裝置ID，無法修改。');
+    return { success: false };
+  }
+
+  const nameResponse = ui.prompt('修改設備資料', '設備名稱：', ui.ButtonSet.OK_CANCEL);
+  if (nameResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
+  const deviceName = nameResponse.getResponseText().trim().substring(0, 80);
+  if (!deviceName) {
+    ui.alert('設備名稱不可空白，未修改任何資料。');
+    return { success: false };
+  }
+
+  const stationResponse = ui.prompt(
+    '修改設備資料',
+    '最近使用站別（請輸入完整站名；系統會依正式站別清單核對）：',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (stationResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
+  let stationName;
+  try {
+    stationName = getActiveStationName_(stationResponse.getResponseText().trim(), '');
+  } catch (error) {
+    ui.alert(error.message || String(error));
+    return { success: false };
+  }
+
+  const workerResponse = ui.prompt('修改設備資料', '預設帶領人員：', ui.ButtonSet.OK_CANCEL);
+  if (workerResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
+  const defaultWorker = workerResponse.getResponseText().trim().substring(0, 30);
+  if (!defaultWorker) {
+    ui.alert('預設帶領人員不可空白，未修改任何資料。');
+    return { success: false };
+  }
+
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try {
+    const currentId = context.sheet.getRange(context.row, 1).getDisplayValue().trim();
+    if (currentId !== deviceId) throw new Error('選取列已變動，為避免修改錯誤設備，本次已停止。');
+    const before = { deviceName: values[1], stationName: values[2], defaultWorker: values[6] };
+    const after = { deviceName: deviceName, stationName: stationName, defaultWorker: defaultWorker };
+    context.sheet.getRange(context.row, 2).setValue(deviceName);
+    context.sheet.getRange(context.row, 3).setValue(stationName);
+    context.sheet.getRange(context.row, 7).setValue(defaultWorker);
+    logDeviceAdminOperation_(context.ss, '修改設備資料', deviceId, deviceName, before, after);
+    SpreadsheetApp.flush();
+    ui.alert('設備資料已更新。');
+    return { success: true, deviceId: deviceId };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * 切換選取設備的啟用狀態，要求管理者再次確認並留下操作紀錄。
+ */
+function adminToggleSelectedDeviceStatus() {
+  requirePlatformAdmin_();
+  const context = getAdminSelectedRow_('裝置設定');
+  if (!context) return { success: false };
+  const ui = SpreadsheetApp.getUi();
+  const values = context.sheet.getRange(context.row, 1, 1, 8).getDisplayValues()[0];
+  const deviceId = String(values[0] || '').trim();
+  if (!deviceId) {
+    ui.alert('此列沒有裝置ID，無法變更狀態。');
+    return { success: false };
+  }
+  const currentStatus = String(values[3] || '').trim();
+  if (!['啟用', '停用'].includes(currentStatus)) {
+    ui.alert('設備目前狀態不是「啟用」或「停用」，請先確認資料。');
+    return { success: false };
+  }
+  const nextStatus = currentStatus === '啟用' ? '停用' : '啟用';
+  const confirm = ui.alert(
+    '確認設備狀態變更',
+    '設備：' + (values[1] || '未填') + '\n站別：' + (values[2] || '未填') +
+      '\n目前狀態：' + currentStatus + '\n變更後：' + nextStatus +
+      (nextStatus === '停用' ? '\n停用後，此設備將無法登入使用或儲存活動紀錄。' : '\n啟用後，此設備可重新使用。') +
+      '\n確定執行嗎？',
+    ui.ButtonSet.YES_NO
+  );
+  if (confirm !== ui.Button.YES) return { success: false, reason: 'cancelled' };
+
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try {
+    const currentId = context.sheet.getRange(context.row, 1).getDisplayValue().trim();
+    const latestStatus = context.sheet.getRange(context.row, 4).getDisplayValue().trim();
+    if (currentId !== deviceId || latestStatus !== currentStatus) {
+      throw new Error('設備資料已變動，為避免覆蓋他人修改，本次已停止。');
+    }
+    context.sheet.getRange(context.row, 4).setValue(nextStatus);
+    logDeviceAdminOperation_(context.ss, nextStatus + '設備', deviceId, values[1], { status: currentStatus }, { status: nextStatus });
+    SpreadsheetApp.flush();
+    ui.alert('設備已' + nextStatus + '。');
+    return { success: true, deviceId: deviceId, status: nextStatus };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * 設備管理異動紀錄；獨立記錄，不變更既有設備欄位。
+ */
+function logDeviceAdminOperation_(ss, action, deviceId, deviceName, before, after) {
+  let sheet = ss.getSheetByName('設備管理異動紀錄');
+  if (!sheet) {
+    sheet = ss.insertSheet('設備管理異動紀錄');
+    sheet.getRange(1, 1, 1, 7).setValues([[
+      '操作時間', '操作類型', '裝置ID', '設備名稱', '操作帳號', '修改前資料', '修改後資料'
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+  let operator = '未取得帳號';
+  try {
+    operator = Session.getActiveUser().getEmail() || operator;
+  } catch (error) {}
+  sheet.appendRow([
+    new Date(), action, deviceId, deviceName, operator,
+    JSON.stringify(before || {}), JSON.stringify(after || {})
+  ]);
+  sheet.getRange(sheet.getLastRow(), 1).setNumberFormat('yyyy/mm/dd hh:mm:ss');
+}
+
 function adminDeleteSelectedDevice() {
+  requirePlatformAdmin_();
   const context = getAdminSelectedRow_('裝置設定');
   if (!context) return { success: false };
 
@@ -1030,6 +1233,7 @@ function ensureAdminDeletionLogSheet_(ss) {
  * 保留程式、表頭、格式、下拉選單、正式站別清單及遊戲設定。
  */
 function resetAllTestOperationalData() {
+  requirePlatformAdmin_();
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const targetSheets = [
@@ -1158,6 +1362,7 @@ function clearOperationalSheetData_(sheet) {
 }
 
 function initializeTestData() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const clientSheet = ss.getSheetByName('個案資料');
@@ -1270,6 +1475,7 @@ function initializeTestData() {
 }
 
 function refreshValidations() {
+  requirePlatformAdmin_();
   setDropdown('個案資料', 6, [
     '國小以下',
     '國中',
@@ -1344,6 +1550,7 @@ function refreshValidations() {
  * 只在原欄位右側增欄，不移動既有活動紀錄的 A～O 欄。
  */
 function setupPlayableGames() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const gameSheet = ss.getSheetByName('遊戲設定');
   const activitySheet = ss.getSheetByName('活動紀錄');
@@ -1620,6 +1827,7 @@ function onEdit(e) {
   }
 }
 function setupSpmsqScoring() {
+  requirePlatformAdmin_();
   const sheet = SpreadsheetApp
     .getActiveSpreadsheet()
     .getSheetByName('SPMSQ評估');
@@ -1708,6 +1916,7 @@ function spmsqEditTrigger(e) {
 }
 
 function calculateSelectedSpmsq() {
+  requirePlatformAdmin_();
   const sheet = SpreadsheetApp.getActiveSheet();
 
   if (sheet.getName() !== 'SPMSQ評估') {
@@ -1958,6 +2167,7 @@ function applyDifficultyFromAssessment(row) {
 }
 
 function createTestSpmsq() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const clientSheet = ss.getSheetByName('個案資料');
   const assessmentSheet = ss.getSheetByName('SPMSQ評估');
@@ -2078,6 +2288,7 @@ function getClientOptions(deviceId, stationName) {
       code: String(row[1] || ''),
       name: String(row[2] || ''),
       age: row[3] instanceof Date && !isNaN(row[3].getTime()) ? calculateAge(row[3]) : null,
+      birthDate: row[3] instanceof Date && !isNaN(row[3].getTime()) ? Utilities.formatDate(row[3], Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
       hasBirthDate: row[3] instanceof Date && !isNaN(row[3].getTime()),
       education: String(row[5] || ''),
       worker: String(row[6] || ''),
@@ -2309,6 +2520,120 @@ function formatDateTimeForWeb_(value) {
 /**
  * 結束或恢復平台服務狀態。此操作不刪除資料，且每次變更均保留軌跡。
  */
+
+/**
+ * 更新個案基本資料，並將修改前後內容寫入獨立異動紀錄。
+ * 不變更既有「個案資料」欄位結構。
+ */
+function updateClientDetails(data) {
+  data = data || {};
+  const clientId = cleanWebText(data.clientId);
+  const device = getEnabledDevice_(data.deviceId);
+  const stationName = getActiveStationName_(data.stationName, device.stationName);
+  const name = cleanWebText(data.name).substring(0, 80);
+  const education = cleanWebText(data.education);
+  const worker = cleanWebText(data.worker).substring(0, 30) || '未指定';
+  const note = cleanWebText(data.note);
+  const birthDateText = cleanWebText(data.birthDate);
+  const operator = cleanWebText(data.operator || device.defaultWorker).substring(0, 30) || '未指定';
+
+  if (!clientId || !name) throw new Error('請確認個案及姓名。');
+  if (!['國小以下', '國中', '高中以上'].includes(education)) {
+    throw new Error('請選擇有效的教育程度。');
+  }
+
+  let birthDate = '';
+  if (birthDateText) {
+    const parts = birthDateText.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(value => !Number.isInteger(value) || value <= 0)) {
+      throw new Error('出生日期格式不正確。');
+    }
+    birthDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+    if (birthDate.getFullYear() !== parts[0] || birthDate.getMonth() !== parts[1] - 1 || birthDate.getDate() !== parts[2]) {
+      throw new Error('出生日期不是有效日期。');
+    }
+    const age = calculateAge(birthDate);
+    if (!Number.isInteger(age) || age < 55 || age > 120) {
+      throw new Error('出生日期計算年齡須為55至120歲，請確認日期。');
+    }
+  }
+
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('個案資料');
+    const rowNumber = findClientRow(clientId);
+    if (!rowNumber) throw new Error('找不到此個案。');
+    const range = sheet.getRange(rowNumber, 1, 1, 13);
+    const row = range.getValues()[0];
+    if (String(row[12] || '').trim() !== stationName) {
+      throw new Error('此個案不屬於目前選擇的站別。');
+    }
+
+    const before = {
+      name: String(row[2] || ''),
+      birthDate: row[3] instanceof Date && !isNaN(row[3].getTime()) ? Utilities.formatDate(row[3], Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+      education: String(row[5] || ''),
+      worker: String(row[6] || ''),
+      note: String(row[7] || '')
+    };
+    const after = {
+      name: name,
+      birthDate: birthDate ? Utilities.formatDate(birthDate, Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+      education: education,
+      worker: worker,
+      note: note
+    };
+    const changed = Object.keys(after).filter(key => before[key] !== after[key]);
+    if (!changed.length) {
+      return { success: true, changed: false, client: {
+        id: clientId, name: name, birthDate: after.birthDate,
+        age: birthDate ? calculateAge(birthDate) : null,
+        hasBirthDate: !!birthDate, education: education, worker: worker,
+        note: note, status: String(row[9] || ''), difficulty: String(row[10] || '待評估')
+      }};
+    }
+
+    // 僅更新既有欄位 B? 不；只更新姓名C、生日D、年齡E、教育F、帶領人G、備註H。
+    sheet.getRange(rowNumber, 3, 1, 6).setValues([[
+      name, birthDate, birthDate ? calculateAge(birthDate) : '', education, worker, note
+    ]]);
+    sheet.getRange(rowNumber, 4).setNumberFormat('yyyy/mm/dd');
+
+    const log = ensureClientDataChangeLogSheet_(ss);
+    log.appendRow([
+      createId('CL'), clientId, new Date(), operator, stationName,
+      changed.join('、'), JSON.stringify(before), JSON.stringify(after)
+    ]);
+    log.getRange(log.getLastRow(), 3).setNumberFormat('yyyy/mm/dd hh:mm:ss');
+    SpreadsheetApp.flush();
+
+    return { success: true, changed: true, client: {
+      id: clientId, name: name, birthDate: after.birthDate,
+      age: birthDate ? calculateAge(birthDate) : null,
+      hasBirthDate: !!birthDate, education: education, worker: worker,
+      note: note, status: String(row[9] || ''), difficulty: String(row[10] || '待評估')
+    }};
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function ensureClientDataChangeLogSheet_(ss) {
+  const headers = ['異動ID','個案ID','修改時間','操作人員','站別','異動欄位','修改前資料','修改後資料'];
+  let sheet = ss.getSheetByName('個案資料異動紀錄');
+  if (!sheet) sheet = ss.insertSheet('個案資料異動紀錄');
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  sheet.getRange(1, 1, 1, headers.length)
+    .setBackground('#2e6856').setFontColor('#ffffff').setFontWeight('bold')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
 function updateClientServiceStatus(data) {
   data = data || {};
 
@@ -3593,6 +3918,7 @@ function testGameBackend() {
  * 可重複執行，不會覆蓋既有活動紀錄。
  */
 function setupDeviceTracking() {
+  requirePlatformAdmin_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const clientSheet = ss.getSheetByName('個案資料');
@@ -3778,6 +4104,7 @@ function isNewGameTestStation_(stationName) {
 }
 
 function setupNewGameTestStation() {
+  requirePlatformAdmin_();
   const result = ensureNewGameTestStation_();
 
   SpreadsheetApp.flush();
