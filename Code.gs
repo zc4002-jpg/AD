@@ -213,6 +213,10 @@ function onOpen() {
 
   const ui = SpreadsheetApp.getUi();
   const adminMenu = ui.createMenu('日常資料管理')
+    .addItem('查看／篩選設備清單', 'openDeviceManagementList')
+    .addItem('修改選取設備資料', 'adminEditSelectedDevice')
+    .addItem('啟用／停用選取設備', 'adminToggleSelectedDeviceStatus')
+    .addSeparator()
     .addItem('刪除選取的錯植個案', 'adminDeleteSelectedClient')
     .addItem('刪除選取的SPMSQ評估', 'adminDeleteSelectedAssessment')
     .addItem('刪除選取的活動紀錄', 'adminDeleteSelectedActivity')
@@ -846,6 +850,162 @@ function adminDeleteSelectedActivity() {
     reason: reason,
     successMessage: '錯植活動紀錄已刪除。'
   });
+}
+
+/**
+ * 開啟設備清單。使用既有「裝置設定」工作表，不新增或變更欄位。
+ */
+function openDeviceManagementList() {
+  requirePlatformAdmin_();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('裝置設定');
+  if (!sheet) throw new Error('找不到「裝置設定」工作表，請先確認設備設定。');
+  ss.setActiveSheet(sheet);
+  if (sheet.getLastRow() >= 1 && !sheet.getFilter()) {
+    sheet.getRange(1, 1, sheet.getLastRow(), 8).createFilter();
+  }
+  SpreadsheetApp.getUi().alert(
+    '設備清單已開啟',
+    '可使用「裝置名稱、最近使用站別、啟用狀態、預設帶領人員」欄位的篩選功能查找設備。\n請選取設備資料列後，再使用管理選單修改或啟用／停用。',
+    SpreadsheetApp.getUi().ButtonSet.OK
+  );
+}
+
+/**
+ * 修改選取設備的名稱、最近使用站別及預設帶領人員。
+ * 僅更新既有欄位B、C、G；保留裝置ID、狀態、時間及連接碼。
+ */
+function adminEditSelectedDevice() {
+  requirePlatformAdmin_();
+  const context = getAdminSelectedRow_('裝置設定');
+  if (!context) return { success: false };
+  const ui = SpreadsheetApp.getUi();
+  const values = context.sheet.getRange(context.row, 1, 1, 8).getDisplayValues()[0];
+  const deviceId = String(values[0] || '').trim();
+  if (!deviceId) {
+    ui.alert('此列沒有裝置ID，無法修改。');
+    return { success: false };
+  }
+
+  const nameResponse = ui.prompt('修改設備資料', '設備名稱：', ui.ButtonSet.OK_CANCEL);
+  if (nameResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
+  const deviceName = nameResponse.getResponseText().trim().substring(0, 80);
+  if (!deviceName) {
+    ui.alert('設備名稱不可空白，未修改任何資料。');
+    return { success: false };
+  }
+
+  const stationNames = getStationOptions().map(item => item.name);
+  const stationResponse = ui.prompt(
+    '修改設備資料',
+    '最近使用站別（請輸入完整站名）：\n' + stationNames.join('、'),
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (stationResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
+  let stationName;
+  try {
+    stationName = getActiveStationName_(stationResponse.getResponseText().trim(), '');
+  } catch (error) {
+    ui.alert(error.message || String(error));
+    return { success: false };
+  }
+
+  const workerResponse = ui.prompt('修改設備資料', '預設帶領人員：', ui.ButtonSet.OK_CANCEL);
+  if (workerResponse.getSelectedButton() !== ui.Button.OK) return { success: false, reason: 'cancelled' };
+  const defaultWorker = workerResponse.getResponseText().trim().substring(0, 30);
+  if (!defaultWorker) {
+    ui.alert('預設帶領人員不可空白，未修改任何資料。');
+    return { success: false };
+  }
+
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try {
+    const currentId = context.sheet.getRange(context.row, 1).getDisplayValue().trim();
+    if (currentId !== deviceId) throw new Error('選取列已變動，為避免修改錯誤設備，本次已停止。');
+    const before = { deviceName: values[1], stationName: values[2], defaultWorker: values[6] };
+    const after = { deviceName: deviceName, stationName: stationName, defaultWorker: defaultWorker };
+    context.sheet.getRange(context.row, 2).setValue(deviceName);
+    context.sheet.getRange(context.row, 3).setValue(stationName);
+    context.sheet.getRange(context.row, 7).setValue(defaultWorker);
+    logDeviceAdminOperation_(context.ss, '修改設備資料', deviceId, deviceName, before, after);
+    SpreadsheetApp.flush();
+    ui.alert('設備資料已更新。');
+    return { success: true, deviceId: deviceId };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * 切換選取設備的啟用狀態，要求管理者再次確認並留下操作紀錄。
+ */
+function adminToggleSelectedDeviceStatus() {
+  requirePlatformAdmin_();
+  const context = getAdminSelectedRow_('裝置設定');
+  if (!context) return { success: false };
+  const ui = SpreadsheetApp.getUi();
+  const values = context.sheet.getRange(context.row, 1, 1, 8).getDisplayValues()[0];
+  const deviceId = String(values[0] || '').trim();
+  if (!deviceId) {
+    ui.alert('此列沒有裝置ID，無法變更狀態。');
+    return { success: false };
+  }
+  const currentStatus = String(values[3] || '').trim();
+  if (!['啟用', '停用'].includes(currentStatus)) {
+    ui.alert('設備目前狀態不是「啟用」或「停用」，請先確認資料。');
+    return { success: false };
+  }
+  const nextStatus = currentStatus === '啟用' ? '停用' : '啟用';
+  const confirm = ui.alert(
+    '確認設備狀態變更',
+    '設備：' + (values[1] || '未填') + '\n站別：' + (values[2] || '未填') +
+      '\n目前狀態：' + currentStatus + '\n變更後：' + nextStatus +
+      (nextStatus === '停用' ? '\n停用後，此設備將無法登入使用或儲存活動紀錄。' : '\n啟用後，此設備可重新使用。') +
+      '\n確定執行嗎？',
+    ui.ButtonSet.YES_NO
+  );
+  if (confirm !== ui.Button.YES) return { success: false, reason: 'cancelled' };
+
+  const lock = LockService.getDocumentLock();
+  lock.waitLock(30000);
+  try {
+    const currentId = context.sheet.getRange(context.row, 1).getDisplayValue().trim();
+    const latestStatus = context.sheet.getRange(context.row, 4).getDisplayValue().trim();
+    if (currentId !== deviceId || latestStatus !== currentStatus) {
+      throw new Error('設備資料已變動，為避免覆蓋他人修改，本次已停止。');
+    }
+    context.sheet.getRange(context.row, 4).setValue(nextStatus);
+    logDeviceAdminOperation_(context.ss, nextStatus + '設備', deviceId, values[1], { status: currentStatus }, { status: nextStatus });
+    SpreadsheetApp.flush();
+    ui.alert('設備已' + nextStatus + '。');
+    return { success: true, deviceId: deviceId, status: nextStatus };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * 設備管理異動紀錄；獨立記錄，不變更既有設備欄位。
+ */
+function logDeviceAdminOperation_(ss, action, deviceId, deviceName, before, after) {
+  let sheet = ss.getSheetByName('設備管理異動紀錄');
+  if (!sheet) {
+    sheet = ss.insertSheet('設備管理異動紀錄');
+    sheet.getRange(1, 1, 1, 7).setValues([[
+      '操作時間', '操作類型', '裝置ID', '設備名稱', '操作帳號', '修改前資料', '修改後資料'
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+  let operator = '未取得帳號';
+  try {
+    operator = Session.getActiveUser().getEmail() || operator;
+  } catch (error) {}
+  sheet.appendRow([
+    new Date(), action, deviceId, deviceName, operator,
+    JSON.stringify(before || {}), JSON.stringify(after || {})
+  ]);
+  sheet.getRange(sheet.getLastRow(), 1).setNumberFormat('yyyy/mm/dd hh:mm:ss');
 }
 
 function adminDeleteSelectedDevice() {
