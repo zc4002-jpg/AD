@@ -1841,7 +1841,7 @@ textarea {
         </div></details>
         <div id="historyClientLoadStatus" class="history-client-load-status hidden" role="status"><span id="historyClientLoadMessage"></span><button class="secondary" type="button" onclick="refreshHistoryClientOptions('')">重新載入個案</button></div>
       </div>
-      <div id="clientRecordProfile" class="client-record-profile hidden"><div><strong id="clientRecordName"></strong><span id="clientRecordDetails"></span><span id="clientRecordStatus" class="service-status-badge"></span></div><button id="serviceStatusButton" class="secondary service-status-button" type="button" onclick="openServiceStatusDialog()">結束服務</button></div>
+      <div id="clientRecordProfile" class="client-record-profile hidden"><div><strong id="clientRecordName"></strong><span id="clientRecordDetails"></span><span id="clientRecordStatus" class="service-status-badge"></span></div></div>
       <div id="clientRecordSummary" class="client-record-summary hidden"></div>
       <div id="historyRecordStatus" role="status" aria-live="polite"></div>
       <div id="clientGameRecordList" class="client-game-record-list">請先選擇個案。</div>
@@ -2905,7 +2905,6 @@ function renderClientGameRecords(result) {
   const records = result.records || [];
   const profile = document.getElementById('clientRecordProfile');
   const statusBadge = document.getElementById('clientRecordStatus');
-  const statusButton = document.getElementById('serviceStatusButton');
 
   state.historyClient = client;
   document.getElementById('clientRecordName').textContent = client.name || '';
@@ -2917,8 +2916,6 @@ function renderClientGameRecords(result) {
   const isClosed = client.status === '已結案';
   statusBadge.textContent = isClosed ? '已結束服務' : (client.status || '服務中');
   statusBadge.classList.toggle('closed', isClosed);
-  statusButton.textContent = isClosed ? '恢復服務' : '結束服務';
-  statusButton.classList.toggle('close-service', !isClosed);
   profile.classList.remove('hidden');
 
   const gameSelect = document.getElementById('historyGameSelect');
